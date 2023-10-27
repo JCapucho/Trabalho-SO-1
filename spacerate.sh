@@ -4,7 +4,10 @@
 set -eu
 PROGRAM_NAME="$0"
 
-
+NAME_SORT=false
+REVERSE_SORT=false
+SORT_OPTS=()
+HEAD_OPTS=()
 
 help() {
 	if [ ! -z "${1+x}" ]; then
@@ -27,31 +30,12 @@ help() {
 }
 
 
-while getopts ":hras:l:" o; do
+while getopts ":hral:" o; do
     case "${o}" in
 		h)
 			help
 			;;
-		n)
-			pattern="$OPTARG"
-			if [ -z "$pattern" ]; then
-				help "Missing argument for \`-$o\`"
-			fi
-			FIND_OPTS+=("-regextype" "posix-extended" "-regex" "^.*/$pattern$")
-			;;
-		s)
-			tamanho="$OPTARG"
-			if [ -z "$tamanho" ]; then
-				help "Missing argument for \`-$o\`"
-			fi
-			if [[ "${tamanho:0-1}" =~ ^[0-9]+$ ]]; then
-				tamanho+="c"
-			fi
-			if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
-				tamanho="+$tamanho"
-			fi
-			FIND_OPTS+=("-size" "$tamanho")
-			;;
+		
 		r)
 			REVERSE_SORT=true
 			;;
@@ -95,6 +79,17 @@ if [ ! -f "$2" ]; then
     help "File \`$2\` does not exist"
 fi
 
+if [ "$NAME_SORT" = true ] ; then
+	SORT_OPTS+=("-k" "2")
+else
+	SORT_OPTS+=("-n" "-k" "1")
+	[ "$REVERSE_SORT" = true ] && REVERSE_SORT=false || REVERSE_SORT=true
+fi
+
+if [ "$REVERSE_SORT" = true ] ; then
+	SORT_OPTS+=("-r")
+fi
+
 declare -A SPACECHECK1
 declare -A SPACECHECK2
 
@@ -127,4 +122,7 @@ for key in "${!DIRECTORIES[@]}"; do
     else
         echo -e "$((${SPACECHECK1[$key]} - ${SPACECHECK2[$key]}))\t$key"
     fi
-done | sort -n -r -k 1
+done | \
+# NOTE: Sorting with `en_US.UTF-8` uses the unicode collation algorithm
+sort "${SORT_OPTS[@]}" | \
+( [ "${#HEAD_OPTS[@]}" -lt 1 ] && cat || head "${HEAD_OPTS[@]}" )
