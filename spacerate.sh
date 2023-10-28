@@ -68,7 +68,7 @@ if [ $# -lt 2 ]; then
 fi
 
 if [ $# -gt 2 ]; then
-    help "Too many arguments"
+		help "Too many arguments"
 fi
 
 if [ ! -f "$1" ]; then
@@ -90,38 +90,49 @@ if [ "$REVERSE_SORT" = true ] ; then
 	SORT_OPTS+=("-r")
 fi
 
-declare -A SPACECHECK1
-declare -A SPACECHECK2
+declare -A SPACECHECK_NEWEST
+declare -A SPACECHECK_OLDEST
+
+NEWESTFILE=""
+OLDESTFILE=""
+
+if [ $(head "$1" | awk '{print $3}') -ge $(head "$2" | awk '{print $3}') ]; then
+	NEWESTFILE="$1"
+	OLDESTFILE="$2"
+else
+	NEWESTFILE="$2"
+	OLDESTFILE="$1"
+fi
 
 while IFS=$'\n' read -r line; do
-    SPACECHECK1[$(echo $line | awk '{print $2}')]=$(echo $line | awk '{print $1}')
-done < <(tail -n +2 "$1")
+  SPACECHECK_NEWEST[$(echo $line | awk '{print $2}')]=$(echo $line | awk '{print $1}')
+done < <(tail -n +2 "$NEWESTFILE")
 
 while IFS=$'\n' read -r line; do
-    SPACECHECK2[$(echo $line | awk '{print $2}')]=$(echo $line | awk '{print $1}')
-done < <(tail -n +2 "$2")
+  SPACECHECK_OLDEST[$(echo $line | awk '{print $2}')]=$(echo $line | awk '{print $1}')
+done < <(tail -n +2 "$OLDESTFILE")
 
 declare -A DIRECTORIES
 
-for key in "${!SPACECHECK1[@]}"; do
-    DIRECTORIES[$key]=1
+for key in "${!SPACECHECK_NEWEST[@]}"; do
+	DIRECTORIES[$key]=1
 done
 
-for key in "${!SPACECHECK2[@]}"; do
-    DIRECTORIES[$key]=1
+for key in "${!SPACECHECK_OLDEST[@]}"; do
+	DIRECTORIES[$key]=1
 done
 
 
 echo SIZE NAME
 
 for key in "${!DIRECTORIES[@]}"; do
-    if [ -z "${SPACECHECK2[$key]+x}" ]; then
-        echo -e "${SPACECHECK1[$key]}\t$key NEW"
-    elif [ -z "${SPACECHECK1[$key]+x}" ]; then
-        echo -e "-${SPACECHECK2[$key]}\t$key REMOVED"
-    else
-        echo -e "$((${SPACECHECK1[$key]} - ${SPACECHECK2[$key]}))\t$key"
-    fi
+	if [ -z "${SPACECHECK_OLDEST[$key]+x}" ]; then
+		echo -e "${SPACECHECK_NEWEST[$key]}\t$key NEW"
+  elif [ -z "${SPACECHECK_NEWEST[$key]+x}" ]; then
+		echo -e "-${SPACECHECK_OLDEST[$key]}\t$key REMOVED"
+  else
+		echo -e "$((${SPACECHECK_NEWEST[$key]} - ${SPACECHECK_OLDEST[$key]}))\t$key"
+	fi
 done | \
 # NOTE: Sorting with `en_US.UTF-8` uses the unicode collation algorithm
 sort "${SORT_OPTS[@]}" | \
