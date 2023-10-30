@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # BIBLIOGRAFIA
 # https://tldp.org/LDP/abs/html/tests.html
-set -eu
+set -o pipefail
 PROGRAM_NAME="$0"
 
 FIND_OPTS=()
@@ -19,13 +19,13 @@ help() {
 	>&2 echo "Usage: $PROGRAM_NAME [options] [dir...]"
 	>&2 printf "\n"
 	>&2 echo "Options:"
-	>&2 echo -e "\t-h:\tShows this message"
-	>&2 echo -e "\t-n PATTERN:\tFilter files by name according to the pattern"
-	>&2 echo -e "\t-d N:\tFilter files by date of modification"
-	>&2 echo -e "\t-s N:\tFilter files by file size"
-	>&2 echo -e "\t-r:\tPrint in reverse order"
-	>&2 echo -e "\t-a:\tOrder by file name"
-	>&2 echo -e "\t-l N:\tOnly show up to N lines"
+	>&2 echo -e "\t-h:          Shows this message"
+	>&2 echo -e "\t-n PATTERN:  Filter files by name according to the pattern"
+	>&2 echo -e "\t-d N:        Filter files by date of modification"
+	>&2 echo -e "\t-s N:        Filter files by file size"
+	>&2 echo -e "\t-r:          Print in reverse order"
+	>&2 echo -e "\t-a:          Order by file name"
+	>&2 echo -e "\t-l N:        Only show up to N lines"
 
 	if [ -z "${1+x}" ]; then
 		exit 0;
@@ -112,14 +112,16 @@ fi
 
 echo "SIZE" "NAME" "$(date +%Y%m%d)" "${OPTIONS[@]}"
 
-# TODO: Isto deve usar bytes (-b) ou block size
-find "$@" "${FIND_OPTS[@]}" -type d -print0 2>/dev/null | \
+find "$@" -type d -print0 2>/dev/null | \
 while IFS= read -r -d $'\0' path; do
-	if find "$path" >/dev/null 2>&1; then
-		du -bd 0 "$path" 2>/dev/null || true
-	else
-		echo -e "NA\t$path"
+	size=$(find "$path" "${FIND_OPTS[@]}" -print0  2>/dev/null | \
+		   du -b --files0-from=- -cs 2>/dev/null | \
+		   cut -f1 | tail -n1)
+	if [ "$?" -ne 0 ]; then
+		size="NA"
 	fi
+
+	echo -e "$size\t$path"
 done | \
 # NOTE: Sorting with `en_US.UTF-8` uses the unicode collation algorithm
 sort "${SORT_OPTS[@]}" | \
