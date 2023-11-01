@@ -127,6 +127,8 @@ for key in "${!DIRECTORIES[@]}"; do
 		echo -e "$new_size\t$key\tNEW"
   	elif [ -z "$new_size" ]; then
 		echo -e "-$old_size\t$key\tREMOVED"
+	elif [ "$old_size" == "NA" ] || [ "$new_size" == "NA" ]; then
+		echo -e "NA\t$key"
   	else
 		diff=$((new_size - old_size))
 		echo -e "$diff\t$key"
