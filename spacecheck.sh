@@ -114,7 +114,7 @@ echo "SIZE" "NAME" "$(date +%Y%m%d)" "${OPTIONS[@]}"
 
 find "$@" -type d -print0 2>/dev/null | \
 while IFS= read -r -d $'\0' path; do
-	size=$(find "$path" "${FIND_OPTS[@]}" -print0  2>/dev/null | \
+	size=$(find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null | \
 		   du -b --files0-from=- -cs 2>/dev/null | \
 		   cut -f1 | tail -n1)
 	if [ "$?" -ne 0 ]; then
