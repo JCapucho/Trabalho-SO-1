@@ -18,7 +18,11 @@ test_start() {
 	local test_name="$1"
 	local test_dir="$TESTS_DIR/$test_name"
 
-	rm -rf "$test_dir"
+	if [ -d "$test_dir" ]; then
+		chmod -R +x "$test_dir"
+		rm -rf "$test_dir"
+	fi
+
 	mkdir -p "$test_dir"
 
 	SPACECHECK_OPTIONS=()

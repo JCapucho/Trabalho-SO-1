@@ -1,0 +1,4 @@
+SIZE NAME 20231101 -n .*\.sh
+8	regex_filter
+8	regex_filter/mixed_filtered
+0	regex_filter/all_filtered

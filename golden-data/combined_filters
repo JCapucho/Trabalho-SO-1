@@ -1,0 +1,4 @@
+SIZE NAME 20231101 -d Sep 10 10:00 -s 10 -n .*\.sh
+26	combined_filters
+26	combined_filters/mixed_filtered
+0	combined_filters/all_filtered
