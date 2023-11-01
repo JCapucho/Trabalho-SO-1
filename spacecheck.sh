@@ -98,16 +98,16 @@ if [ "$#" -lt 1 ]; then
 	help "Not enough arguments"
 fi
 
+NAME_REVERSE_PREFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
+SIZE_REVERSE_PREFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
+
+SORT_BY_NAME=("-k" "2,2$NAME_REVERSE_PREFIX")
+SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_PREFIX")
 
 if [ "$NAME_SORT" = true ] ; then
-	SORT_OPTS+=("-k" "2")
+	SORT_OPTS+=( "${SORT_BY_NAME[@]}" "${SORT_BY_SIZE[@]}" )
 else
-	SORT_OPTS+=("-n" "-k" "1")
-	[ "$REVERSE_SORT" = true ] && REVERSE_SORT=false || REVERSE_SORT=true
-fi
-
-if [ "$REVERSE_SORT" = true ] ; then
-	SORT_OPTS+=("-r")
+	SORT_OPTS+=( "${SORT_BY_SIZE[@]}" "${SORT_BY_NAME[@]}" )
 fi
 
 echo "SIZE" "NAME" "$(date +%Y%m%d)" "${OPTIONS[@]}"
