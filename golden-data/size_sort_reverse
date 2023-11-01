@@ -1,0 +1,5 @@
+SIZE NAME 20231101 -r
+2	size_sort_reverse/with spaces
+4	size_sort_reverse/simple
+7	size_sort_reverse/with " quotes
+13	size_sort_reverse

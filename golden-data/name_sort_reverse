@@ -1,0 +1,5 @@
+SIZE NAME 20231101 -a -r
+2	name_sort_reverse/with spaces
+7	name_sort_reverse/with " quotes
+4	name_sort_reverse/simple
+13	name_sort_reverse
