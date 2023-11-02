@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# BIBLIOGRAFIA
-# https://tldp.org/LDP/abs/html/tests.html
 PROGRAM_NAME="$0"
 
 NAME_SORT=false
@@ -71,15 +69,16 @@ elif [ ! -f "$2" ]; then
     help "File \`$2\` does not exist"
 fi
 
-if [ "$NAME_SORT" = true ] ; then
-	SORT_OPTS+=("-k" "2")
-else
-	SORT_OPTS+=("-n" "-k" "1")
-	[ "$REVERSE_SORT" = true ] && REVERSE_SORT=false || REVERSE_SORT=true
-fi
+NAME_REVERSE_PREFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
+SIZE_REVERSE_PREFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
 
-if [ "$REVERSE_SORT" = true ] ; then
-	SORT_OPTS+=("-r")
+SORT_BY_NAME=("-k" "2,2$NAME_REVERSE_PREFIX")
+SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_PREFIX")
+
+if [ "$NAME_SORT" = true ] ; then
+	SORT_OPTS+=( "${SORT_BY_NAME[@]}" "${SORT_BY_SIZE[@]}" )
+else
+	SORT_OPTS+=( "${SORT_BY_SIZE[@]}" "${SORT_BY_NAME[@]}" )
 fi
 
 declare -A SPACECHECK_NEWEST
