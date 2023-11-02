@@ -13,13 +13,13 @@ help() {
 		>&2 echo "Error: $1"
 	fi
 
-	>&2 echo "Usage: $PROGRAM_NAME [options] <old> <new> "
+	>&2 echo "Usage: $PROGRAM_NAME [options] <new> <old>"
 	>&2 printf "\n"
 	>&2 echo "Options:"
-	>&2 echo -e "\t-h:\tShows this message"
-	>&2 echo -e "\t-r:\tPrint in reverse order"
-	>&2 echo -e "\t-a:\tOrder by file name"
-	>&2 echo -e "\t-l N:\tOnly show up to N lines"
+	>&2 echo -e "\t-h:          Shows this message"
+	>&2 echo -e "\t-r:          Print in reverse order"
+	>&2 echo -e "\t-a:          Order by file name"
+	>&2 echo -e "\t-l N:        Only show up to N lines"
 
 	if [ -z "${1+x}" ]; then
 		exit 0;
@@ -85,16 +85,8 @@ fi
 declare -A SPACECHECK_NEWEST
 declare -A SPACECHECK_OLDEST
 
-NEWESTFILE="$2"
-OLDESTFILE="$1"
-
-# if [ $(head "$1" | awk '{print $3}') -ge $(head "$2" | awk '{print $3}') ]; then
-# 	NEWESTFILE="$1"
-# 	OLDESTFILE="$2"
-# else
-# 	NEWESTFILE="$2"
-# 	OLDESTFILE="$1"
-# fi
+NEWESTFILE="$1"
+OLDESTFILE="$2"
 
 while IFS=$'\n' read -r line; do
 	size=$(echo $line | cut -d ' ' -f1)
