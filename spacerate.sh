@@ -126,7 +126,13 @@ for key in "${!DIRECTORIES[@]}"; do
 	if [ -z "$old_size" ]; then
 		echo -e "$new_size\t$key\tNEW"
   	elif [ -z "$new_size" ]; then
-		echo -e "-$old_size\t$key\tREMOVED"
+		if [ "$old_size" == "0" ]; then
+			display_size="0"
+		else
+			display_size="-$old_size"
+		fi
+
+		echo -e "$display_size\t$key\tREMOVED"
 	elif [ "$old_size" == "NA" ] || [ "$new_size" == "NA" ]; then
 		echo -e "NA\t$key"
   	else
