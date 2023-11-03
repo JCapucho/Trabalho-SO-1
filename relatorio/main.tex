@@ -14,9 +14,29 @@
 \usepackage{float}
 \usepackage{graphicx}
 
-\usepackage{geometry}
-% \usepackage[showframe]{geometry}
+% Add `showframe` to display geometry guides
+\usepackage[headheight=20mm,headsep=5mm]{geometry}
 \usepackage{setspace}
+
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=6mm]{figs/deti.png}}
+\fancyhead[C]{\leftmark}
+\fancyhead[R]{Sistemas Operativos}
+\fancypagestyle{plain}{}
+
+% Change the chapter title to the compact format
+% 	Number. Title
+% Instead of:
+% 	Capítulo Number.
+% 	Title
+\usepackage[explicit,compact]{titlesec}
+\titleformat{\chapter}[block]
+    {\bfseries\huge}{\filright\huge\thechapter.}{1ex}{\huge\filright #1}
+
+% Remove the header from the TOC page
+\AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{empty}}} 
 
 \begin{document}
 
