@@ -26,6 +26,7 @@ test_start() {
 	mkdir -p "$test_dir"
 
 	SPACECHECK_OPTIONS=()
+	FAKED_DATE="2023/11/01"
 
 	pushd "$test_dir" > /dev/null
 }
@@ -35,7 +36,7 @@ test_end() {
 
 	local test_name="$1"
 	pushd "$TESTS_DIR" > /dev/null
-	local output="$("$SCRIPT_DIR/spacecheck.sh" "${SPACECHECK_OPTIONS[@]}" "$test_name")"
+	local output="$(faketime "$FAKED_DATE" "$SCRIPT_DIR/spacecheck.sh" "${SPACECHECK_OPTIONS[@]}" "$test_name")"
 	popd > /dev/null
 
 	local golden_data_file="$GOLDEN_DATA_DIR/$test_name"
