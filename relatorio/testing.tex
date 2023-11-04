@@ -1,6 +1,6 @@
 \chapter{Testagem}
 
-\section{Metodologia}
+\section{Metodologia}\label{sec:testing_metodology}
 
 Durante o desenvolvimento do programa \Verb|spacecheck.sh| este foi testado
 manualmente com alguns ficheiros e diretórios criados a mão para simular
@@ -8,7 +8,7 @@ diferentes casos relevantes ao funcionamento do programa.
 
 No entanto este processo era menos que ideal, pois não só obrigava a gastar
 tempo a configurar manualmente os diretórios mas também a verificar que os
-resultados corespondiam ao esperado. Mas o maior problema de todos era o erro
+resultados correspondiam ao esperado. Mas o maior problema de todos era o erro
 humano inerente a realização da testagem desta maneira, pois não só dependemos
 do desenvolvedor lembrar-se de todos os casos que têm de testar, mas também que
 estes sejam bem configurados de todas as vezes e que os erros que possam
@@ -18,8 +18,8 @@ Estes dois últimos pontos em particular são mais propícios de falhar com o
 aumento da frequência com que são feitos, o que vai contra o nosso objetivo
 de testar frequentemente.
 
-Logo procuramos obter um novo processo de testagem que satisfizesse as seguintes
-condições:
+Logo procuramos obter um novo processo de testagem que satisfizesse os seguintes
+objetivos:
 
 \begin{enumdescript}
 	\item[Automático]
@@ -44,3 +44,112 @@ Esta abordagem é comum no desenvolvimento de \emph{User Interfaces} e em
 mensagens de erros de ferramentas pois em ambos destes casos a única propriedade
 que faz sentido verificar é o resultado em si e a testagem de componentes
 individuais destes sistemas não faz sentido em termos de prevenir erros.
+
+\section{Implementação}
+
+O novo processo de testagem é implementado no script \emph{Bash}
+\Verb|test_harness.sh|, o seu funcionamento de alto nível é descrito na
+figura \ref{fig:testing_diagram}.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[node distance=2cm]
+		\input{figs/testing_diagram}
+	\end{tikzpicture}
+	\cprotect\caption{Diagrama do funcionamento de alto nível do \Verb|test_harness.sh|.}
+	\label{fig:testing_diagram}
+\end{figure}
+
+O script começa por carregar outro ficheiro \emph{Bash} \Verb|tests.sh| onde os testes
+estão definidos, isto é feito por uma questão de organização,
+\Verb|test_harness| define o processo de testagem e funções de utilidade para os
+testes enquanto que \Verb|tests.sh| contêm os testes.
+
+O script foi desenhado para aceitar os nomes dos testes a correr como argumentos
+na linha de comando, como é apresentado no código \ref{code:test_harness_filter}.
+
+\begin{listing}[H]
+	\begin{minted}{shell-session}
+		$ ./test_harness.sh empty_root quoting_test
+		empty_root: PASSED
+		quoting_test: PASSED
+	\end{minted}
+	\cprotect\caption{Exemplo de uso do \Verb|test_harness.sh| com filtragem.}
+	\label{code:test_harness_filter}
+\end{listing}
+
+Esta facilidade foi implementada para possibilitar um ciclo de desenvolvimento
+mais rápido quando o desenvolvedor está interessado num conjunto restrito de
+testes, seja porque está a consertar o programa ou porque está a escrever mais
+testes.
+
+Após fazer esta filtragem, este vai executar todos os testes especificados
+(ou todos se nenhum teste for especificado). Cada teste começa por limpar
+qualquer vestígios de execuções anterior, de seguida a diretoria do teste
+é criada e preparada de acordo com o teste, este pode ainda especificar
+argumentos a passar ao \Verb|spacecheck.sh|.
+
+O resultado da execução é comparado ao ficheiro de referência do teste usando o
+comando \Verb|diff|, caso o ficheiro de referência não exista esta execução é
+assumida como o ficheiro de referência para execuções futuras (cabendo ao
+desenvolvedor verificar que o resultado é o esperado). Se o resultado diferir,
+o teste é marcado como falhado e o resultado é gravado num ficheiro
+\Verb|rejected-test.data| para análise pelo desenvolvedor.
+
+\subsection{Detalhes da implementação}
+
+Este tipo de testagem assume que o resultado da execução é \emph{determinista},
+ou seja, para um conjunto de entadas igual o resultado será igual, no entanto
+o \Verb|spacecheck.sh| não pode ser considerado determinista pois este depende
+de uma variavél externa, o tempo.
+
+O resultado de \Verb|spacecheck.sh| inclui sempre uma data \Verb|YYYYMMDD| de
+quando este foi executado, isto é um problema porque o mesmo teste quando
+executado em dias diferentes irá apresentar resultados diferentes causando com
+que o teste falhe.
+
+% TODO: Add bibliographic reference to libfaketime
+Logo para obter determinismo na execução dos testes é necessário correr o
+programa sempre com um tempo pré-definido, para tal foi utilizado o programa
+\Verb|faketime| do projeto \Verb|libfaketime|, este permite mudar o tempo
+reportado a um programa sem ter de mudar o relógio do sistema, sendo assim ideal
+para o nosso objetivo de uma ferramenta de fácil utilização para testagem.
+
+\begin{listing}[H]
+	\begin{minted}{shell-session}
+		$ date +%Y%m%d
+		20231104
+		$ faketime "2023/11/01" date +%Y%m%d
+		20231101
+	\end{minted}
+	\cprotect\caption{Exemplo do funcionamento de \Verb|faketime|.}
+\end{listing}
+
+\section{Resultados}
+
+A implementação de um processo de testagem automática descrito na secção
+anterior, permitiu-nos satisfazer os objetivos que delineamos na secção
+\ref{sec:testing_metodology}, os testes são todos executados automaticamente (com a
+opção de opcionalmente restringir os testes a executar), eles correm em
+ambientes que são criados de raiz em cada execução e são declarados num ficheiro
+\emph{Bash}.
+
+Mas o mais importante de tudo, foi o facto do envolvimento do desenvolvedor
+em todo o processo ter sido cortado significativamente, este agora só necessita
+de começar o processo de testagem, verificar os ficheiros de referência
+inicialmente e corrigir erros que sejam capturados pela testagem.
+
+Isto traduz-se numa redução do tempo de testagem para \textbf{um teste} de
+\numrange{10}{30} segundos em média, para $< 2$ segundos para
+\textbf{todos os testes!}
+
+Além dá redução do tempo necessário para a testagem, o novo processo foi logo
+após a sua implementação capaz de capturar um erro que tinha sido introduzido
+anteriormente aquando de mudanças de como os ficheiros eram filtrados. O erro
+causava com que o filtro de data de modificação não tivesse qualquer efeito,
+este em particular é um dos casos mais difíceis de testar devido ao números de
+passos necessários para configurar uma diretoria com datas especificas manualmente.
+
+Concluindo, o novo processo de testagem é mais eficiente e eficaz em garantir
+a qualidade do trabalho criado, consideramos assim que o tempo gasto na sua
+implementação foi útil e recuperado no longo termo.
