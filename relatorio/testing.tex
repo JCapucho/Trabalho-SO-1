@@ -1,1 +1,46 @@
 \chapter{Testagem}
+
+\section{Metodologia}
+
+Durante o desenvolvimento do programa \Verb|spacecheck.sh| este foi testado
+manualmente com alguns ficheiros e diretórios criados a mão para simular
+diferentes casos relevantes ao funcionamento do programa.
+
+No entanto este processo era menos que ideal, pois não só obrigava a gastar
+tempo a configurar manualmente os diretórios mas também a verificar que os
+resultados corespondiam ao esperado. Mas o maior problema de todos era o erro
+humano inerente a realização da testagem desta maneira, pois não só dependemos
+do desenvolvedor lembrar-se de todos os casos que têm de testar, mas também que
+estes sejam bem configurados de todas as vezes e que os erros que possam
+eventualmente aparecer sejam apanhados.
+
+Estes dois últimos pontos em particular são mais propícios de falhar com o
+aumento da frequência com que são feitos, o que vai contra o nosso objetivo
+de testar frequentemente.
+
+Logo procuramos obter um novo processo de testagem que satisfizesse as seguintes
+condições:
+
+\begin{enumdescript}
+	\item[Automático]
+	todos os testes necessários são executados sem que o desenvolvedor tenha que
+	se lembrar de cada um deles individualmente.
+	\item[Declarativo]
+	todos os testes são configurados uma vez e sempre que os testes são
+	executados os diretórios e ficheiros necessários são criados de raíz
+	para garantir que os testes são facilmente reproduzidos.
+	\item[Transparentes]
+	não é necessário a intervenção do desenvolvedor para verificar o resultado
+	do teste em casos em que este está correto.
+\end{enumdescript}
+
+Como tal desenvolvemos um processo automático de testagem que se baseia no
+padrão de \textbf{Golden Testing}. Este consiste em correr um teste com entradas
+definidas e constantes para o mesmo teste (no nosso caso estas entradas são os
+ficheiros e diretórios) e comparar o resultado com um resultado prévio que se
+sabe estar correto.
+
+Esta abordagem é comum no desenvolvimento de \emph{User Interfaces} e em
+mensagens de erros de ferramentas pois em ambos destes casos a única propriedade
+que faz sentido verificar é o resultado em si e a testagem de componentes
+individuais destes sistemas não faz sentido em termos de prevenir erros.
