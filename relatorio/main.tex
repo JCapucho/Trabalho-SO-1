@@ -13,12 +13,32 @@
 \usepackage[hidelinks]{hyperref}
 % Needed for the figure H
 \usepackage{float}
+\usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+% Better captions
+\usepackage[margin=10pt,font=small,labelfont=bf]{caption}
+\usepackage{cprotect}
+
+% Needed for diagrams
+\usepackage[inputdir=./build,outputdir=./build]{vendor/dot2texi}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows}
+
+% Defines an enumerated description list
+\newcounter{descriptcount}
+\newlist{enumdescript}{description}{1}
+\setlist[enumdescript,1]{%
+  before={\setcounter{descriptcount}{0}%
+          \renewcommand*\thedescriptcount{\arabic{descriptcount}.}}
+  ,font=\bfseries\stepcounter{descriptcount}\thedescriptcount~
+}
 
 % Add `showframe` to display geometry guides
 \usepackage[headheight=20mm,headsep=5mm]{geometry}
-\usepackage{setspace}
 
 \usepackage{fancyhdr}
 
