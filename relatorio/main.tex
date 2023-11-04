@@ -7,7 +7,9 @@
 
 \usepackage{lmodern}
 
+% Add support for portuguese writing rules
 \usepackage[portuguese]{babel}
+\babelprovide[transforms = hyphen.repeat]{portuguese}
 
 % Makes all references hyperlinked
 \usepackage[hidelinks]{hyperref}
@@ -26,6 +28,8 @@
 \renewcommand{\listingscaption}{Código}
 % Use the chapter number in the listing counter
 \renewcommand{\thelisting}{\thechapter.\arabic{listing}}
+% Number ranges
+\usepackage[detect-all]{siunitx}
 
 % Needed for diagrams
 \usepackage[dvipsnames]{xcolor}
