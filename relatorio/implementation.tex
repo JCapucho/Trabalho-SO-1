@@ -26,6 +26,43 @@ tarde quanto começarmos a iterar sobre eles.
 
 \subsection{Escolher os ficheiros}
 
+Após obter todos os sub-diretórios dos diretórios passados é importante
+conseguir trabalhar sobre cada um deles, para isso usamos o
+\mintinline{bash}{while read} da seguinte maneira:
+
+\mintinline{bash}{find} da seguinte maneira:
+\begin{listing}[H]
+  \begin{minted}{bash}
+    while IFS= read -r -d $'\0' path; do
+      // ...
+    done
+  \end{minted}
+\end{listing}
+
+Aqui colocamos o \mintinline{bash}{IFS} nulo para não separar por espaços,
+sendo que cada diretório pode conte-los. O \mintinline{bash}{-d $'\0'} tem um
+papel importante, visto que como nós estamos a passar uma string de paths
+separados por \Verb|'\0'| é essencial neste passo mudar o delimitador do
+\mintinline{bash}{while read} para o \Verb|'\0'|.
+
+Com isto podemos começar a procurar os ficheiros a serem usados no calculo do
+tamanho usando outro \mintinline{bash}{find}, contudo desta vez ele terá
+algumas diferenças grandes.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null
+  \end{minted}
+\end{listing}
+
+O \mintinline{bash}{path} vem do loop e o \mintinline{bash}{${FIND_OPTS[@]}}
+será falado no processamento de argumentos, mas contém as opções relevantes
+para a pesquisa de acordo com os argumentos passados pelo utilizador.
+
+Além do array de opções a principal diferença deste \mintinline{bash}{find}
+para o outro é que este apenas procura por ficheiros, e como no outro imprime
+os caminhos separados por \Verb|'\0'|.
+
 \subsection{Calcular o tamanho de cada diretório}
 
 \subsection{Processamento de argumentos}
