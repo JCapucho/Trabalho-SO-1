@@ -4,6 +4,26 @@
 
 \subsection{Encontrar os diretórios}
 
+Para conseguir gerir e monitorizar o espaço ocupado em disco dentro de
+diretórios é primeiro essencial saber quais são os diretórios a ser usados.
+
+Usando os argumentos passados ao script com os diretórios a serem pesquisados,
+descobrimos os seus sub-diretórios todos atraves do comando
+\mintinline{bash}{find} da seguinte maneira:
+\begin{listing}[H]
+  \begin{minted}{bash}
+    find "$@" -type d -print0 2>/dev/null
+  \end{minted}
+\end{listing}
+Procuramos dentro dos diretórios passados todos os seus sub-diretórios
+(\mintinline{bash}{-type d}). Todos os erros não nos são relevantes por isso
+não os imprimimos. A forma como os caminhos dos diretórios são impressos também
+é relevante sendo que eles acabam com \Verb|'\0'| e não \Verb|'\n'| como normalmente
+seriam.
+
+O motivo para fazer a impressão dos caminhos desta maneira será evidente mais
+tarde quanto começarmos a iterar sobre eles.
+
 \subsection{Escolher os ficheiros}
 
 \subsection{Calcular o tamanho de cada diretório}
