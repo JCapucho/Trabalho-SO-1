@@ -50,7 +50,8 @@ diff_or_warn() {
 		rm "$new_file"
 	else
 		1>&2 echo "Warning: No golden data found to compare \"$new_file\" for \"$test_name\""
-		mv "$new_file" "$ref_file"
+		mkdir -p -- "$(dirname -- "$ref_file")"
+		mv -- "$new_file" "$ref_file"
 	fi
 }
 
@@ -59,18 +60,16 @@ test_end() {
 
 	local test_name="$1"
 
-	if [ "${#SPACECHECK_DIRS[@]}" -eq 0 ]; then
-		SPACECHECK_DIRS+=("$test_name")
-	else
-		for i in "${!SPACECHECK_DIRS[@]}"; do
-			SPACECHECK_DIRS[$i]="$test_name/${SPACECHECK_DIRS[$i]}"
-		done
-	fi
-
 	local new_stdout="$SCRIPT_DIR/new.stdout"
 	local new_stderr="$SCRIPT_DIR/new.stderr"
 
-	pushd "$TESTS_DIR" > /dev/null
+	if [ "${#SPACECHECK_DIRS[@]}" -eq 0 ]; then
+		SPACECHECK_DIRS+=("$test_name")
+		pushd "$TESTS_DIR" > /dev/null
+	else
+		pushd "$TESTS_DIR/$test_name" > /dev/null
+	fi
+
 	faketime "$FAKED_DATE" "$SCRIPT_DIR/spacecheck.sh" \
 		"${SPACECHECK_OPTIONS[@]}" "${SPACECHECK_DIRS[@]}" 1> "$new_stdout" 2> "$new_stderr"
 	popd > /dev/null
@@ -85,7 +84,7 @@ create_test_file() {
 	local path="$1"
 	local size="$2"
 
-	mkdir -p "$( dirname "$path" )"
+	mkdir -p -- "$( dirname -- "$path" )"
 	printf '%*s\n' $((size - 1)) "=" > "$path"
 }
 

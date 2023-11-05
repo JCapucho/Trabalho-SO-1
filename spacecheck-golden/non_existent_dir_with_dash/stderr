@@ -1,0 +1,3 @@
+ERROR: "-n" does not exist
++note: did you mean to pass an argument?
+       all arguments must precede the directory paths

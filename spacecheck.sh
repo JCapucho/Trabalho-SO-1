@@ -91,7 +91,14 @@ while getopts ":hran:d:s:l:" o; do
 			;;
     esac
 done
-OPTIONS="${@:1:OPTIND-1}"
+
+LAST_OPTION_INDEX=$((OPTIND-1))
+# Don't record the argument separator `--` in the used options
+if [ "${!LAST_OPTION_INDEX}" == "--" ]; then
+	OPTIONS="${@:1:OPTIND-2}"
+else
+	OPTIONS="${@:1:OPTIND-1}"
+fi
 shift $((OPTIND-1))
 
 if [ "$#" -lt 1 ]; then
@@ -110,9 +117,29 @@ else
 	SORT_OPTS+=( "${SORT_BY_SIZE[@]}" "${SORT_BY_NAME[@]}" )
 fi
 
+DIRS_TO_SEARCH=()
+
+for dir in "$@"; do
+	if [ ! -d "$dir" ]; then
+		1>&2 echo "ERROR: \"$dir\" does not exist"
+	fi
+	case "$dir" in
+		-*)
+			if [ ! -d "$dir" ]; then
+				1>&2 echo "+note: did you mean to pass an argument?"
+				1>&2 echo "       all arguments must precede the directory paths"
+			fi
+			# Add `./` to directories beginning with a dash (`-`), so that find, doesn't
+			# mistake them, for functions.
+			DIRS_TO_SEARCH+=("./$dir");;
+		*)
+			DIRS_TO_SEARCH+=("$dir");;
+	esac
+done
+
 echo "SIZE" "NAME" "$(date +%Y%m%d)" "${OPTIONS[@]}"
 
-find "$@" -type d -print0 2>/dev/null | \
+find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null | \
 while IFS= read -r -d $'\0' path; do
 	size=$(find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null | \
 		   du -b --files0-from=- -cs 2>/dev/null | \

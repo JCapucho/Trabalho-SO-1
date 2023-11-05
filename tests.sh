@@ -115,6 +115,19 @@ combined_filters() {
 	touch -d "Sep 10 10:01" "mixed_filtered/file5"
 }
 
+argument_seperator() {
+	SPACECHECK_OPTIONS=("--")
+	SPACECHECK_DIRS=("-n")
+	create_test_file "-n/file" 4
+	create_test_file "-n/file2" 2
+}
+
+non_existent_dir_with_dash() {
+	SPACECHECK_DIRS=("simple" "-n")
+	create_test_file "simple/file" 4
+	create_test_file "simple/file2" 2
+}
+
 declare -A TESTS
 TESTS["empty_root"]="empty_root"
 TESTS["quoting_test"]="quoting_test"
@@ -130,3 +143,5 @@ TESTS["file_size_filter"]="file_size_filter"
 TESTS["head_3_lines"]="head_3_lines"
 TESTS["head_3_lines_reverse"]="head_3_lines_reverse"
 TESTS["combined_filters"]="combined_filters"
+TESTS["argument_seperator"]="argument_seperator"
+TESTS["non_existent_dir_with_dash"]="non_existent_dir_with_dash"
