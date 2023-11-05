@@ -1,0 +1,8 @@
+Error: File `old` does not exist
+Usage: /home/capucho/universidade/2ano1/SO/pratico/spacerate.sh [options] <new> <old>
+
+Options:
+	-h:          Shows this message
+	-r:          Print in reverse order
+	-a:          Order by file name
+	-l N:        Only show up to N lines

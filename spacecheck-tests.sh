@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -u
 
-empty_root() {
-	: # Do nothing
-}
-
 quoting_test() {
 	create_test_file "simple/file" 4
 	create_test_file "with spaces/file" 2
@@ -150,7 +146,7 @@ different_time() {
 }
 
 declare -A TESTS
-TESTS["empty_root"]="empty_root"
+TESTS["empty_root"]=":" # The `:` function does nothing (ie. nop)
 TESTS["quoting_test"]="quoting_test"
 TESTS["size_sort_reverse"]="size_sort_reverse"
 TESTS["name_sort"]="name_sort"
@@ -179,11 +175,11 @@ test_start() {
 	local test_dir="$TESTS_DIR/$test_name"
 
 	if [ -d "$test_dir" ]; then
-		chmod -R +x "$test_dir"
-		rm -rf "$test_dir"
+		chmod -R +x -- "$test_dir"
+		rm -rf -- "$test_dir"
 	fi
 
-	mkdir -p "$test_dir"
+	mkdir -p -- "$test_dir"
 
 	SPACECHECK_DIRS=()
 	SPACECHECK_OPTIONS=()
