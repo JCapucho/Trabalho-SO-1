@@ -15,8 +15,8 @@ estes sejam bem configurados de todas as vezes e que os erros que possam
 eventualmente aparecer sejam apanhados.
 
 Estes dois últimos pontos em particular são mais propícios de falhar com o
-aumento da frequência com que são feitos, o que vai contra o nosso objetivo
-de testar frequentemente.
+aumento da frequência com que são feitos \cite{fewster1999software, rafi2012benefits},
+o que vai contra o nosso objetivo de testar frequentemente.
 
 Logo procuramos obter um novo processo de testagem que satisfizesse os seguintes
 objetivos:
@@ -35,15 +35,17 @@ objetivos:
 \end{enumdescript}
 
 Como tal desenvolvemos um processo automático de testagem que se baseia no
-padrão de \textbf{Golden Testing}. Este consiste em correr um teste com entradas
+padrão de \textbf{Golden Testing}\cite{goldenTestsAreTasty}.
+Este consiste em correr um teste com entradas
 definidas e constantes para o mesmo teste (no nosso caso estas entradas são os
 ficheiros e diretórios) e comparar o resultado com um resultado prévio que se
 sabe estar correto.
 
-Esta abordagem é comum no desenvolvimento de \emph{User Interfaces} e em
-mensagens de erros de ferramentas pois em ambos destes casos a única propriedade
-que faz sentido verificar é o resultado em si e a testagem de componentes
-individuais destes sistemas não faz sentido em termos de prevenir erros.
+Esta abordagem é comum no desenvolvimento de \emph{User Interfaces}
+\cite{ebayScreenshotTesting} e em mensagens de erros de ferramentas
+\cite{brsonRustTested} pois em ambos destes casos a única propriedade\ que faz
+sentido verificar é o resultado em si e a testagem de componentes individuais
+destes sistemas não faz sentido em termos de prevenir erros.
 
 \section{Implementação}
 
@@ -108,12 +110,13 @@ quando este foi executado, isto é um problema porque o mesmo teste quando
 executado em dias diferentes irá apresentar resultados diferentes causando com
 que o teste falhe.
 
-% TODO: Add bibliographic reference to libfaketime
 Logo para obter determinismo na execução dos testes é necessário correr o
 programa sempre com um tempo pré-definido, para tal foi utilizado o programa
-\Verb|faketime| do projeto \Verb|libfaketime|, este permite mudar o tempo
-reportado a um programa sem ter de mudar o relógio do sistema, sendo assim ideal
-para o nosso objetivo de uma ferramenta de fácil utilização para testagem.
+\Verb|faketime| do projeto \Verb|libfaketime|
+\footnote{\url{https://github.com/wolfcw/libfaketime}},
+este permite mudar o tempo reportado a um programa sem ter de mudar o relógio
+do sistema, sendo assim ideal para o nosso objetivo de uma ferramenta de fácil
+utilização para testagem.
 
 \begin{listing}[H]
 	\begin{minted}{shell-session}

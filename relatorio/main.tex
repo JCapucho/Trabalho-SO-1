@@ -109,6 +109,10 @@ fill=purple!20]
 % Remove the header from the TOC page
 \AtBeginDocument{\addtocontents{toc}{\protect\thispagestyle{empty}}} 
 
+% Don't sort the bibliography, use the order of the citations usage
+\usepackage[sorting=none, dateabbrev=false, language=portuguese]{biblatex}
+\addbibresource{bibliography.bib}
+
 \begin{document}
 
 \include{cover}
@@ -119,6 +123,6 @@ fill=purple!20]
 
 \include{testing}
 
-\include{bibliography}
+\printbibliography[heading=bibintoc]
 
 \end{document}
