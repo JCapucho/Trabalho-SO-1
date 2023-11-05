@@ -1,0 +1,11 @@
+Error: Unknown option
+Usage: /home/capucho/universidade/2ano1/SO/pratico/spacecheck.sh [options] [dir...]
+
+Options:
+	-h:          Shows this message
+	-n PATTERN:  Filter files by name according to the pattern
+	-d N:        Filter files by date of modification
+	-s N:        Filter files by file size
+	-r:          Print in reverse order
+	-a:          Order by file name
+	-l N:        Only show up to N lines

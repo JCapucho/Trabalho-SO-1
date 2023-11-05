@@ -128,6 +128,18 @@ non_existent_dir_with_dash() {
 	create_test_file "simple/file2" 2
 }
 
+unknown_option() {
+	SPACECHECK_DIRS=("-m")
+}
+
+multiple_dirs() {
+	SPACECHECK_DIRS=("dir1" "dir2" "dir4")
+	create_test_file "dir1/file" 1
+	create_test_file "dir2/file" 2
+	create_test_file "dir3/file" 3
+	create_test_file "dir4/file" 4
+}
+
 declare -A TESTS
 TESTS["empty_root"]="empty_root"
 TESTS["quoting_test"]="quoting_test"
@@ -145,3 +157,5 @@ TESTS["head_3_lines_reverse"]="head_3_lines_reverse"
 TESTS["combined_filters"]="combined_filters"
 TESTS["argument_seperator"]="argument_seperator"
 TESTS["non_existent_dir_with_dash"]="non_existent_dir_with_dash"
+TESTS["unknown_option"]="unknown_option"
+TESTS["multiple_dirs"]="multiple_dirs"
