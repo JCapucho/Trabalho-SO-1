@@ -1,10 +1,3 @@
-#!/usr/bin/env bash
-set -u
-
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-TESTS_DIR="$SCRIPT_DIR/tests"
-GOLDEN_DATA_DIR="$SCRIPT_DIR/spacecheck-golden"
-
 DIFF_TOOL="diff"
 
 if command -v delta &> /dev/null; then
@@ -13,24 +6,6 @@ fi
 
 mkdir -p "$TESTS_DIR"
 mkdir -p "$GOLDEN_DATA_DIR"
-
-test_start() {
-	local test_name="$1"
-	local test_dir="$TESTS_DIR/$test_name"
-
-	if [ -d "$test_dir" ]; then
-		chmod -R +x "$test_dir"
-		rm -rf "$test_dir"
-	fi
-
-	mkdir -p "$test_dir"
-
-	SPACECHECK_DIRS=()
-	SPACECHECK_OPTIONS=()
-	FAKED_DATE="2023/11/01"
-
-	pushd "$test_dir" > /dev/null
-}
 
 diff_or_warn() {
 	local test_name="$1"
@@ -55,31 +30,6 @@ diff_or_warn() {
 	fi
 }
 
-test_end() {
-	popd > /dev/null
-
-	local test_name="$1"
-
-	local new_stdout="$SCRIPT_DIR/new.stdout"
-	local new_stderr="$SCRIPT_DIR/new.stderr"
-
-	if [ "${#SPACECHECK_DIRS[@]}" -eq 0 ]; then
-		SPACECHECK_DIRS+=("$test_name")
-		pushd "$TESTS_DIR" > /dev/null
-	else
-		pushd "$TESTS_DIR/$test_name" > /dev/null
-	fi
-
-	faketime "$FAKED_DATE" "$SCRIPT_DIR/spacecheck.sh" \
-		"${SPACECHECK_OPTIONS[@]}" "${SPACECHECK_DIRS[@]}" 1> "$new_stdout" 2> "$new_stderr"
-	popd > /dev/null
-
-	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stdout" "$new_stdout"
-	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stderr" "$new_stderr"
-
-	echo "$test_name: PASSED"
-}
-
 create_test_file() {
 	local path="$1"
 	local size="$2"
@@ -93,9 +43,9 @@ runner() {
 	test_start "$test_name"
 	"$2"
 	test_end "$test_name"
-}
 
-source "$SCRIPT_DIR/tests.sh"
+	echo "$test_name: PASSED"
+}
 
 if [ "$#" -lt 1 ]; then
 	for test in "${!TESTS[@]}"; do

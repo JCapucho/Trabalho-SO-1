@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -u
+
 empty_root() {
 	: # Do nothing
 }
@@ -159,3 +162,50 @@ TESTS["argument_seperator"]="argument_seperator"
 TESTS["non_existent_dir_with_dash"]="non_existent_dir_with_dash"
 TESTS["unknown_option"]="unknown_option"
 TESTS["multiple_dirs"]="multiple_dirs"
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+TESTS_DIR="$SCRIPT_DIR/spacecheck-tests"
+GOLDEN_DATA_DIR="$SCRIPT_DIR/spacecheck-golden"
+
+test_start() {
+	local test_name="$1"
+	local test_dir="$TESTS_DIR/$test_name"
+
+	if [ -d "$test_dir" ]; then
+		chmod -R +x "$test_dir"
+		rm -rf "$test_dir"
+	fi
+
+	mkdir -p "$test_dir"
+
+	SPACECHECK_DIRS=()
+	SPACECHECK_OPTIONS=()
+	FAKED_DATE="2023/11/01"
+
+	pushd "$test_dir" > /dev/null
+}
+
+test_end() {
+	popd > /dev/null
+
+	local test_name="$1"
+
+	local new_stdout="$SCRIPT_DIR/new.stdout"
+	local new_stderr="$SCRIPT_DIR/new.stderr"
+
+	if [ "${#SPACECHECK_DIRS[@]}" -eq 0 ]; then
+		SPACECHECK_DIRS+=("$test_name")
+		pushd "$TESTS_DIR" > /dev/null
+	else
+		pushd "$TESTS_DIR/$test_name" > /dev/null
+	fi
+
+	faketime "$FAKED_DATE" "$SCRIPT_DIR/spacecheck.sh" \
+		"${SPACECHECK_OPTIONS[@]}" "${SPACECHECK_DIRS[@]}" 1> "$new_stdout" 2> "$new_stderr"
+	popd > /dev/null
+
+	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stdout" "$new_stdout"
+	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stderr" "$new_stderr"
+}
+
+source "$SCRIPT_DIR/test_harness.sh"
