@@ -91,13 +91,13 @@ while IFS=$'\n' read -r line; do
 	size=$(echo $line | cut -d ' ' -f1)
 	name=$(echo $line | cut -d ' ' -f2-)
 	SPACECHECK_NEWEST["$name"]="$size"
-done < <(tail -n +2 "$NEWESTFILE")
+done < <(tail -n +2 -- "$NEWESTFILE")
 
 while IFS=$'\n' read -r line; do
 	size=$(echo $line | cut -d ' ' -f1)
 	name=$(echo $line | cut -d ' ' -f2-)
   	SPACECHECK_OLDEST["$name"]="$size"
-done < <(tail -n +2 "$OLDESTFILE")
+done < <(tail -n +2 -- "$OLDESTFILE")
 
 declare -A DIRECTORIES
 
