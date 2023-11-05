@@ -143,6 +143,12 @@ multiple_dirs() {
 	create_test_file "dir4/file" 4
 }
 
+different_time() {
+	FAKED_DATE="2023/11/05"
+	create_test_file "dir1/file" 1
+	create_test_file "dir1/file" 2
+}
+
 declare -A TESTS
 TESTS["empty_root"]="empty_root"
 TESTS["quoting_test"]="quoting_test"
@@ -162,6 +168,7 @@ TESTS["argument_seperator"]="argument_seperator"
 TESTS["non_existent_dir_with_dash"]="non_existent_dir_with_dash"
 TESTS["unknown_option"]="unknown_option"
 TESTS["multiple_dirs"]="multiple_dirs"
+TESTS["different_time"]="different_time"
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 TESTS_DIR="$SCRIPT_DIR/spacecheck-tests"
