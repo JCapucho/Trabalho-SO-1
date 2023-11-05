@@ -3,7 +3,7 @@ set -u
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 TESTS_DIR="$SCRIPT_DIR/tests"
-GOLDEN_DATA_DIR="$SCRIPT_DIR/golden-data"
+GOLDEN_DATA_DIR="$SCRIPT_DIR/spacecheck-golden"
 
 DIFF_TOOL="diff"
 
@@ -25,39 +25,58 @@ test_start() {
 
 	mkdir -p "$test_dir"
 
+	SPACECHECK_DIRS=()
 	SPACECHECK_OPTIONS=()
 	FAKED_DATE="2023/11/01"
 
 	pushd "$test_dir" > /dev/null
 }
 
+diff_or_warn() {
+	local test_name="$1"
+	local ref_file="$2"
+	local new_file="$3"
+
+	if [ -f "$ref_file" ]; then
+		"$DIFF_TOOL" "$ref_file" "$new_file"
+
+		if [ "$?" -ne 0 ]; then
+			echo "$test_name: FAILED"
+			1>&2 echo "Error: Result differs from golden data"
+			1>&2 echo "The new result was stored in $new_file"
+			exit 1
+		fi
+
+		rm "$new_file"
+	else
+		1>&2 echo "Warning: No golden data found to compare \"$new_file\" for \"$test_name\""
+		mv "$new_file" "$ref_file"
+	fi
+}
+
 test_end() {
 	popd > /dev/null
 
 	local test_name="$1"
-	pushd "$TESTS_DIR" > /dev/null
-	local output="$(faketime "$FAKED_DATE" "$SCRIPT_DIR/spacecheck.sh" "${SPACECHECK_OPTIONS[@]}" "$test_name")"
-	popd > /dev/null
 
-	local golden_data_file="$GOLDEN_DATA_DIR/$test_name"
-
-	if [ -f "$golden_data_file" ]; then
-		echo "$output" | "$DIFF_TOOL" "$golden_data_file" -
-
-		if [ "$?" -ne 0 ]; then
-			local rejected_test_file="$SCRIPT_DIR/rejected-test.data"
-			echo "$test_name: FAILED"
-			1>&2 echo "Error: Result differs from golden data"
-			1>&2 echo "Saving new data to rejected-test.data"
-			echo "$output" > "$rejected_test_file"
-			exit 1
-		fi
+	if [ "${#SPACECHECK_DIRS[@]}" -eq 0 ]; then
+		SPACECHECK_DIRS+=("$test_name")
 	else
-		1>&2 echo "Warning: No golden data found for \"$test_name\""
-		echo "$output" > "$golden_data_file"
+		for i in "${!SPACECHECK_DIRS[@]}"; do
+			SPACECHECK_DIRS[$i]="$test_name/${SPACECHECK_DIRS[$i]}"
+		done
 	fi
 
-	SPACECHECK_OPTIONS=()
+	local new_stdout="$SCRIPT_DIR/new.stdout"
+	local new_stderr="$SCRIPT_DIR/new.stderr"
+
+	pushd "$TESTS_DIR" > /dev/null
+	faketime "$FAKED_DATE" "$SCRIPT_DIR/spacecheck.sh" \
+		"${SPACECHECK_OPTIONS[@]}" "${SPACECHECK_DIRS[@]}" 1> "$new_stdout" 2> "$new_stderr"
+	popd > /dev/null
+
+	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stdout" "$new_stdout"
+	# diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stderr"
 
 	echo "$test_name: PASSED"
 }

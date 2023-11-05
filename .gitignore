@@ -1,2 +1,3 @@
 /tests
-/rejected-test.data
+/new.stdout
+/new.stderr
