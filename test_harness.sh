@@ -76,7 +76,7 @@ test_end() {
 	popd > /dev/null
 
 	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stdout" "$new_stdout"
-	# diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stderr"
+	diff_or_warn "$test_name" "$GOLDEN_DATA_DIR/$test_name/stderr" "$new_stderr"
 
 	echo "$test_name: PASSED"
 }
