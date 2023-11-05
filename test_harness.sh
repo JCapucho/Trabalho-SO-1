@@ -85,7 +85,7 @@ create_test_file() {
 	local size="$2"
 
 	mkdir -p -- "$( dirname -- "$path" )"
-	printf '%*s\n' $((size - 1)) "=" > "$path"
+	dd if=/dev/zero "of=$path" "bs=$size" count=1 2>/dev/null
 }
 
 runner() {
