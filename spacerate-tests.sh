@@ -18,6 +18,7 @@ TESTS["old_non_existent"]=":"
 TESTS["old_starting_with_dash"]="old_starting_with_dash"
 TESTS["new_starting_with_dash"]="new_starting_with_dash"
 TESTS["additions_removals"]=":"
+TESTS["true_zero"]=":"
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 TESTS_DIR="$SCRIPT_DIR/spacerate-tests"
