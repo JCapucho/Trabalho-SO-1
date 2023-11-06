@@ -72,7 +72,7 @@ fi
 NAME_REVERSE_PREFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
 SIZE_REVERSE_PREFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
 
-SORT_BY_NAME=("-k" "2,2$NAME_REVERSE_PREFIX")
+SORT_BY_NAME=("-k" "2$NAME_REVERSE_PREFIX")
 SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_PREFIX")
 
 if [ "$NAME_SORT" = true ] ; then
