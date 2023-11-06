@@ -54,7 +54,7 @@ if [ "$#" -lt 1 ]; then
 else
 	for test in "$@"; do
 		if [ -z ${TESTS[$test]+x} ]; then
-			1>&2 "ERROR: Unknown test \"$test\""
+			1>&2 echo "ERROR: Unknown test \"$test\""
 			exit 1
 		fi
 
