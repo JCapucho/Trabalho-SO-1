@@ -87,27 +87,21 @@ declare -A SPACECHECK_OLDEST
 NEWESTFILE="$1"
 OLDESTFILE="$2"
 
+declare -A DIRECTORIES
+
 while IFS=$'\n' read -r line; do
 	size=$(echo $line | cut -d ' ' -f1)
 	name=$(echo $line | cut -d ' ' -f2-)
 	SPACECHECK_NEWEST["$name"]="$size"
+	DIRECTORIES["$name"]=1
 done < <(tail -n +2 -- "$NEWESTFILE")
 
 while IFS=$'\n' read -r line; do
 	size=$(echo $line | cut -d ' ' -f1)
 	name=$(echo $line | cut -d ' ' -f2-)
   	SPACECHECK_OLDEST["$name"]="$size"
+	DIRECTORIES["$name"]=1
 done < <(tail -n +2 -- "$OLDESTFILE")
-
-declare -A DIRECTORIES
-
-for key in "${!SPACECHECK_NEWEST[@]}"; do
-	DIRECTORIES["$key"]=1
-done
-
-for key in "${!SPACECHECK_OLDEST[@]}"; do
-	DIRECTORIES["$key"]=1
-done
 
 echo SIZE NAME
 
