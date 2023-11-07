@@ -65,6 +65,30 @@ os caminhos separados por \Verb|'\0'|.
 
 \subsection{Calcular o tamanho de cada diretório}
 
+Uma vez que já temos uma lista com todos os ficheiros referentes a um
+diretório, o ultimo passo que falta é calcular o tamanho de todos ficheiros.
+Felizmente para nós o comando \mintinline{bash}{du} consegue facilmente fazer
+isso para nós utilizando o seguinte comando.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    du -b --files0-from=- -cs 2>/dev/null | cut -f1 | tail -n1
+  \end{minted}
+\end{listing}
+
+O commando \mintinline{bash}{du -b} serve para obter o espaço utilizado pelos
+ficheiros em bytes. O argumento \mintinline{bash}{--files0-from=-} é bastante
+importante aqui sendo que o seu significado é ler do \Verb|stdin| delimitado
+por \Verb|'\0'|, que é como nós formatamos os dados no passo anterior com o
+\mintinline{bash}{-print0} no \mintinline{bash}{find}. Por fim, usamos a opção
+\mintinline{bash}{-cs} na qual o \Verb|c| mostra o total do tamanho dos
+ficheiros passados (ou seja a soma) e o \Verb|s| serve para evitar repetições
+(o seu unico proposito é eficiencia).
+
+De seguida uso o comando \mintinline{bash}{cut -f1} para obter tudo até o
+primeiro \Verb|'\t'| e por fim damos \mintinline{bash}{tail -n1} para extrair
+so a ultima linha, que é a que contem o valor total.
+
 \subsection{Processamento de argumentos}
 
 \subsection{Ordenar o output}
