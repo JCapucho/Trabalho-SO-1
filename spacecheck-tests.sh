@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -u
 
+create_test_file() {
+	local path="$1"
+	local size="$2"
+
+	mkdir -p -- "$( dirname -- "$path" )"
+	dd if=/dev/zero "of=$path" "bs=$size" count=1 2>/dev/null
+}
+
 quoting_test() {
 	create_test_file "simple/file" 4
 	create_test_file "with spaces/file" 2

@@ -2,12 +2,16 @@
 
 \section{Metodologia}\label{sec:testing_metodology}
 
-Durante o desenvolvimento do programa \Verb|spacecheck.sh| este foi testado
-manualmente com alguns ficheiros e diretórios criados a mão para simular
-diferentes casos relevantes ao funcionamento do programa.
+Durante o desenvolvimento dos programas em questão estes começaram por ser
+testados manualmente, no caso do \Verb|spacecheck.sh| este era testado com alguns
+ficheiros e diretórios criados a mão para simular diferentes casos relevantes ao
+funcionamento do programa. O \Verb|spacerate.sh| utilizava os ficheiros produzidos
+por estes testes com algumas ligeiras modificações feitas à mão, para simular casos
+mais extremos.
 
 No entanto este processo era menos que ideal, pois não só obrigava a gastar
-tempo a configurar manualmente os diretórios mas também a verificar que os
+tempo a configurar manualmente os diretórios e a editar ficheiros do
+\Verb|spacecheck.sh|, mas também a verificar que os
 resultados correspondiam ao esperado. Mas o maior problema de todos era o erro
 humano inerente a realização da testagem desta maneira, pois não só dependemos
 do desenvolvedor lembrar-se de todos os casos que têm de testar, mas também que
@@ -49,34 +53,68 @@ destes sistemas não faz sentido em termos de prevenir erros.
 
 \section{Implementação}
 
-O novo processo de testagem é implementado no script \emph{Bash}
-\Verb|test_harness.sh|, o seu funcionamento de alto nível é descrito na
-figura \ref{fig:testing_diagram}.
+O novo processo de testagem para o \Verb|spacecheck.sh| e \Verb|spacerate.sh|
+é implementado nos scripts \emph{Bash} \Verb|spacecheck-tests.sh| e
+\Verb|spacerate-tests.sh|, respetivamente. O seu funcionamento de alto nível é
+apresentado na figura \ref{fig:testing_diagram}.
 
 \begin{figure}[H]
 	\centering
 	\begin{tikzpicture}[node distance=2cm]
 		\input{figs/testing_diagram}
 	\end{tikzpicture}
-	\cprotect\caption{Diagrama do funcionamento de alto nível do \Verb|test_harness.sh|.}
+	\cprotect\caption{Diagrama do funcionamento de alto nível do \Verb|spacecheck-tests.sh|.}
 	\label{fig:testing_diagram}
 \end{figure}
 
-O script começa por carregar outro ficheiro \emph{Bash} \Verb|tests.sh| onde os testes
-estão definidos, isto é feito por uma questão de organização,
-\Verb|test_harness| define o processo de testagem e funções de utilidade para os
-testes enquanto que \Verb|tests.sh| contêm os testes.
+\newpage
 
-O script foi desenhado para aceitar os nomes dos testes a correr como argumentos
+O script de testagem começa por definir funções que possam ser utéis a testagem
+e de seguida define o mapa de testes. O mapa de testes é um array associativo
+onde os indíces são o nome dos testes e os valores são funções usadas para
+configurar o teste (ou \Verb|:| que em \emph{Bash} é a função vazia).
+
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+		quoting_test() {
+			create_test_file "simple/file" 4
+			create_test_file "with spaces/file" 2
+			create_test_file 'with " quotes/file' 7
+		}
+
+		declare -A TESTS
+		TESTS["empty_root"]=":"
+		TESTS["quoting_test"]="quoting_test"
+	\end{minted}
+	\cprotect\caption{Exemplo de um mapa de testes e funções associadas.}
+\end{listing}
+
+Após o mapa de testes, é necessário definir duas funções extra \Verb|test_start|
+e \Verb|test_end|, estas funções serão usadas pelo arnês de testes e vão correr
+antes e depois de cada teste respetivamente. No \Verb|test_start| é suposto
+definir código comum a todos os testes, como por exemplo, apagar ficheiros antigos
+e criar o diretório do teste. O \Verb|test_end|, além de código definido pelo
+desenvolvedor, têm de executar o pograma sobre teste e fazer o \emph{diff} com
+os ficheiros de referência.
+
+Finalmente o script de testagem carregá o ficheiro \Verb|test_harness.sh|. Este
+ficheiro é o arnês de testagem, ou seja inclui rotinas de como fazer o
+\emph{diff} com o ficheiro de referência e incluí o codígo que irá processar
+os argumentos passados pelo utilizador e executar os testes.
+
+O arnês foi desenhado para aceitar os nomes dos testes a correr como argumentos
 na linha de comando, como é apresentado no código \ref{code:test_harness_filter}.
 
 \begin{listing}[H]
+	\centering
 	\begin{minted}{shell-session}
-		$ ./test_harness.sh empty_root quoting_test
+		$ ./spacecheck-tests.sh empty_root quoting_test
 		empty_root: PASSED
 		quoting_test: PASSED
 	\end{minted}
-	\cprotect\caption{Exemplo de uso do \Verb|test_harness.sh| com filtragem.}
+	\cprotect\caption{Exemplo de filtragem dos testes a executar.}
 	\label{code:test_harness_filter}
 \end{listing}
 
@@ -85,23 +123,72 @@ mais rápido quando o desenvolvedor está interessado num conjunto restrito de
 testes, seja porque está a consertar o programa ou porque está a escrever mais
 testes.
 
-Após fazer esta filtragem, este vai executar todos os testes especificados
-(ou todos se nenhum teste for especificado). Cada teste começa por limpar
-qualquer vestígios de execuções anterior, de seguida a diretoria do teste
-é criada e preparada de acordo com o teste, este pode ainda especificar
-argumentos a passar ao \Verb|spacecheck.sh|.
+Finalmente, o arnês vai executar todos os testes especificados (se nenhum foi
+especificado, todos os testes definidos no mapa de testes serão executados).
 
-O resultado da execução é comparado ao ficheiro de referência do teste usando o
-comando \Verb|diff|, caso o ficheiro de referência não exista esta execução é
-assumida como o ficheiro de referência para execuções futuras (cabendo ao
-desenvolvedor verificar que o resultado é o esperado). Se o resultado diferir,
-o teste é marcado como falhado e o resultado é gravado num ficheiro
-\Verb|rejected-test.data| para análise pelo desenvolvedor.
+\cprotect\subsection{\Verb|spacecheck.sh|}
 
-\subsection{Detalhes da implementação}
+Cada teste do \Verb|spacecheck.sh| começa por limpar
+qualquer vestígios de execuções anteriores, de seguida a diretoria do teste
+é criada, isto tudo acontece no \Verb|test_start|.
+
+De seguida cada teste cria vários ficheiros e diretórios de acordo com o
+comportamento que se pretende testar, o código \ref{code:test_definition} mostra
+um exemplo de um dos testes definidos.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+		quoting_test() {
+			create_test_file "simple/file" 4
+			create_test_file "with spaces/file" 2
+			create_test_file 'with " quotes/file' 7
+		}
+	\end{minted}
+	\cprotect\caption{Exemplo da definição de um teste do \Verb|spacecheck.sh|.}
+	\label{code:test_definition}
+\end{listing}
+
+A função \Verb|create_test_file| é uma função auxiliar que cria um ficheiro num
+dado caminho (e as diretorias onde ele reside) com um tamanho definido, a função
+é apresentada na listagem de código \ref{code:create_test_file}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+		create_test_file() {
+			local path="$1"
+			local size="$2"
+
+			mkdir -p -- "$( dirname -- "$path" )"
+			dd if=/dev/zero "of=$path" "bs=$size" count=1 2>/dev/null
+		}
+	\end{minted}
+	\cprotect\caption{Definição da função \Verb|create_test_file|.}
+	\label{code:create_test_file}
+\end{listing}
+
+% TODO: Decide on diretoria ou dirtório
+A função faz uso do comando \Verb|dirname| para obter o caminho sem o nome do
+ficheiro, ou seja, apenas com os diretórios, de seguida passa este valor ao
+\Verb|mkdir| que os vai criar, aqui é utilizada a opção \Verb|-p| para criar as
+diretorias recursivamente e para o \Verb|mkdir| não falhar se estas já existirem.
+
+% TODO: Add link to how spacecheck had to solve this
+Em ambos estes comandos foi necessário utilizar \Verb|--| antes do caminho, isto
+acontece porque é perfeitamente válido o caminho começar por um traço
+(\Verb|-|), que normalmente denota opções.
+
+O ficheiro em si é criado através do programa \Verb|dd|, este é utilizado porque
+permite o controlo preciso do tamanho do ficheiro, para isto é utilizado o
+ficheiro especial \Verb|/dev/zero| (um ficheiro sem fim que retorna sempre 0),
+de onde vai ser lido um bloco (\Verb|count=1|) de \Verb|$size| bytes
+	(\Verb|bs=$size|) que será copiado para o novo ficheiro.
+
+\subsubsection{Problemas com variavéis externas}
 
 Este tipo de testagem assume que o resultado da execução é \emph{determinista},
-ou seja, para um conjunto de entadas igual o resultado será igual, no entanto
+ou seja, para conjuntos de entradas iguais o resultado será igual, no entanto
 o \Verb|spacecheck.sh| não pode ser considerado determinista pois este depende
 de uma variavél externa, o tempo.
 
@@ -110,7 +197,7 @@ quando este foi executado, isto é um problema porque o mesmo teste quando
 executado em dias diferentes irá apresentar resultados diferentes causando com
 que o teste falhe.
 
-Logo para obter determinismo na execução dos testes é necessário correr o
+Logo para obter determinismo na execução dos testes é necessário executar o
 programa sempre com um tempo pré-definido, para tal foi utilizado o programa
 \Verb|faketime| do projeto \Verb|libfaketime|
 \footnote{\url{https://github.com/wolfcw/libfaketime}},
@@ -119,6 +206,7 @@ do sistema, sendo assim ideal para o nosso objetivo de uma ferramenta de fácil
 utilização para testagem.
 
 \begin{listing}[H]
+	\centering
 	\begin{minted}{shell-session}
 		$ date +%Y%m%d
 		20231104
@@ -127,6 +215,19 @@ utilização para testagem.
 	\end{minted}
 	\cprotect\caption{Exemplo do funcionamento de \Verb|faketime|.}
 \end{listing}
+
+\cprotect\subsection{\Verb|spacerate.sh|}
+
+O \Verb|spacerate.sh| é testado de uma maneira semelhante ao
+\Verb|spacecheck.sh|, no entanto agora invês de serem criados os ficheiros e
+diretorias para cada teste, os ficheiros para comparar já existem e foram
+desenhadas especialmente para manifestar comportamentos especificos no script.
+
+Além disso o \Verb|spacerate.sh| ainda difere em mais um aspeto, o teste não é
+executado apenas uma vez, mas sim \textbf{duas} vezes, a segunda vez com a ordem
+dos ficheiros trocada. Como a troca da ordem dos ficheiros deve produzir um
+resultado simétrico, a testagem nas duas direções é uma maneira simples de
+verificar essa propriedade no programa.
 
 \section{Resultados}
 
@@ -148,7 +249,8 @@ Isto traduz-se numa redução do tempo de testagem para \textbf{um teste} de
 
 Além da redução do tempo necessário para a testagem, o novo processo foi logo
 após a sua implementação capaz de capturar um erro que tinha sido introduzido
-anteriormente aquando de mudanças de como os ficheiros eram filtrados. O erro
+anteriormente aquando de mudanças de como os ficheiros eram filtrados no
+\Verb|spacecheck.sh|. O erro
 causava com que o filtro de data de modificação não tivesse qualquer efeito,
 este em particular é um dos casos mais difíceis de testar devido ao números de
 passos necessários para configurar uma diretoria com datas especificas manualmente.

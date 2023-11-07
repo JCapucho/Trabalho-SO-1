@@ -30,14 +30,6 @@ diff_or_warn() {
 	fi
 }
 
-create_test_file() {
-	local path="$1"
-	local size="$2"
-
-	mkdir -p -- "$( dirname -- "$path" )"
-	dd if=/dev/zero "of=$path" "bs=$size" count=1 2>/dev/null
-}
-
 runner() {
 	local test_name="$1"
 	test_start "$test_name"

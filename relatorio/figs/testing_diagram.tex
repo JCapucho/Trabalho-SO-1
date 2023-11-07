@@ -1,30 +1,34 @@
-\node (start) [flowchart_endpoint, text width=3.5cm, fill=green!40] {\Verb|test_harness.sh|};
+\node (start)
+[flowchart_endpoint, text width=4cm, fill=green!40]
+{\Verb|spacecheck-tests.sh|};
 
-\node (source_tests) [flowchart_step, below of=start] {Carregar os testes};
+\node (source_tests)
+[flowchart_step, below of=start]
+{Carregar o arnês de testes};
 \node (tests)
-	[flowchart_input, right of=source_tests, xshift=2cm]
-	{\Verb|tests.sh|};
+[flowchart_input, right of=source_tests, text width=3.5cm, xshift=3cm]
+{\Verb|test_harness.sh|};
 
 \node (filter_tests) [flowchart_step, below of=source_tests] {Filtrar testes};
 \node (cli_args)
-	[flowchart_input, right of=filter_tests, xshift=2cm]
-	{Argumentos de linha de comando};
+[flowchart_input, right of=filter_tests, text width=3.5cm, xshift=3cm]
+{Argumentos de linha de comando};
 
 \node (loop_tests)
-	[flowchart_decision, below of=filter_tests, yshift=-1cm]
-	{Testes por executar?};
+[flowchart_decision, below of=filter_tests, yshift=-1cm]
+{Testes por executar?};
 
 \node (success)
-	[flowchart_endpoint, right of=loop_tests, xshift=3cm, fill=OliveGreen!40]
-	{Todos os testes passaram};
+[flowchart_endpoint, right of=loop_tests, xshift=3cm, fill=OliveGreen!40]
+{Todos os testes passaram};
 \node (run_test) [flowchart_step, below of=loop_tests, yshift=-1cm] {Executar um teste};
 
 \node (diff)
-	[flowchart_decision, below of=run_test, yshift=-1cm]
-	{Diff com ficheiro de referência};
+[flowchart_decision, below of=run_test, yshift=-1cm]
+{Diff com ficheiro de referência};
 \node (failure)
-	[flowchart_endpoint, right of=diff, xshift=4.5cm]
-	{Testes falharam};
+[flowchart_endpoint, right of=diff, xshift=4.5cm]
+{Testes falharam};
 
 \draw [flowchart_arrow] (start) -- (source_tests);
 \draw [flowchart_arrow] (tests) -- (source_tests);
@@ -36,6 +40,6 @@
 \draw [flowchart_arrow] (run_test) -- (diff);
 \draw [flowchart_arrow] (diff) -- node[above] {Há diferenças} (failure);
 \draw [flowchart_arrow]
-	(diff.west)
-	-- ++ (-1,0)
-	|- node[pos=0.25,anchor=east] {Não há diferenças} (loop_tests.west);
+(diff.west)
+-- ++ (-1,0)
+|- node[pos=0.25,anchor=east] {Não há diferenças} (loop_tests.west);
