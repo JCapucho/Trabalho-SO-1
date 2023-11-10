@@ -91,6 +91,85 @@ so a ultima linha, que é a que contem o valor total.
 
 \subsection{Processamento de argumentos}
 
+Para o processamento dos argumentos usamos o comando \mintinline{bash}{getopts} com o padrão \mintinline{bash}{":hran:d:s:l:"}.
+
+A opção \Verb|-h| imprime a seguinte mensagem:
+
+\begin{listing}[H]
+\begin{minted}{bash}
+Usage: ./spacecheck.sh [options] [dir...]
+
+Options:
+	-h:          Shows this message
+	-n PATTERN:  Filter files by name according to the pattern
+	-d N:        Filter files by date of modification
+	-s N:        Filter files by file size
+	-r:          Print in reverse order
+	-a:          Order by file name
+	-l N:        Only show up to N lines
+\end{minted}
+\end{listing}
+
+A opção \Verb|-n| está implementada da seguinte forma:
+
+\begin{listing}[H]
+\begin{minted}{bash}
+pattern="$OPTARG"
+FIND_OPTS+=("-regextype" "posix-extended" "-regex" "^.*/$pattern$")
+\end{minted}
+\end{listing}
+
+Adicionamos às opções do comando \mintinline{bash}{find} o tipo de regex que é \Verb|posix extended|, pelo que é um dos mais completos e utilizados.
+De seguida passamos uma regex que processa tudo depois da ultima \Verb|'/'| de acordo com o padrão passado pelo utilizador.
+
+As opções do \Verb|FIND_OPTS| são passadas no \Verb|find| falado anteriormente \ref{sec:find_opts}.
+
+A opção \Verb|-d| está implementada da seguinte forma:
+
+\begin{listing}[H]
+\begin{minted}{bash}
+			data="$OPTARG"
+			timestamp="@$(date -d "$data" +%s)"
+			FIND_OPTS+=("-newermt" "$timestamp")
+\end{minted}
+\end{listing}
+
+A opção \Verb|-newermt| do find faz exatamente isso tendo como argumento a data em tempo unix, que é obtido usando \mintinline{bash}{date -d "$data" +%s}.
+
+Quanto à opção \Verb|-s| a forma como é implementada é semelhante às outras:
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+			tamanho="$OPTARG"
+      if [[ "${tamanho:0-1}" =~ ^[0-9]+$ ]]; then
+				tamanho+="c"
+			fi
+			if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
+				tamanho="+$tamanho"
+			fi
+			FIND_OPTS+=("-size" "$tamanho")
+  \end{minted}
+\end{listing}
+
+O primeiro \Verb|if| verifica se o ultimo carater é um número e caso seja adiciona um \Verb|'c'| no fim da string.
+O \Verb|'c'| é para dizer que o tamanho está especificado em bytes.
+
+O segundo \Verb|if| verifica se o primeiro carater é um número e caso seja adiciona um \Verb|'+'| no inicio da string.
+O \Verb|'+'| é para especificar o tamanho é maior do que o tamanho passado.
+
+A opção \Verb|-r| está implementada de uma forma diferente sendo que no processamento dos argumentos apenas faz \mintinline{bash}{REVERSE_SORT=true}
+
+A opção \Verb|-a| está implementada da mesma forma que o \Verb|-r| sendo que apenas faz \mintinline{bash}{NAME_SORT=true}
+
+Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| o valor passado pelo utilizador.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+      linhas="$OPTARG"
+      HEAD_OPTS+=("-n" "$linhas")
+  \end{minted}
+\end{listing}
+
 \subsection{Ordenar o output}
 
 \subsection{Escolher o número de linhas}
