@@ -207,6 +207,17 @@ Por fim, para ordenar o output é usado o command \mintinline{bash}{sort "${SORT
 
 \subsection{Escolher o número de linhas}
 
+O ultimo passo é escolher o número de linhas a serem impressas.
+Como já temos o array \Verb|HEAD_OPTS| basta fazer para:
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    [ "${#HEAD_OPTS[@]}" -lt 1 ] && cat || head "${HEAD_OPTS[@]}"
+  \end{minted}
+\end{listing}
+
+Se o número de opções for menor que 1 então imprime tudo, caso contrário imprime apenas as primeiras linhas.
+
 \section{Spacerate}
 
 \subsection{Extrair os dados para um dicionário}
