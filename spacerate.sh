@@ -90,15 +90,15 @@ OLDESTFILE="$2"
 declare -A DIRECTORIES
 
 while IFS=$'\n' read -r line; do
-	size=$(echo $line | cut -d ' ' -f1)
-	name=$(echo $line | cut -d ' ' -f2-)
+	size=$(echo "$line" | cut -f1)
+	name=$(echo "$line" | cut -f2-)
 	SPACECHECK_NEWEST["$name"]="$size"
 	DIRECTORIES["$name"]=1
 done < <(tail -n +2 -- "$NEWESTFILE")
 
 while IFS=$'\n' read -r line; do
-	size=$(echo $line | cut -d ' ' -f1)
-	name=$(echo $line | cut -d ' ' -f2-)
+	size=$(echo "$line" | cut -f1)
+	name=$(echo "$line" | cut -f2-)
   	SPACECHECK_OLDEST["$name"]="$size"
 	DIRECTORIES["$name"]=1
 done < <(tail -n +2 -- "$OLDESTFILE")
