@@ -99,7 +99,7 @@ done < <(tail -n +2 -- "$NEWESTFILE")
 while IFS=$'\n' read -r line; do
 	size=$(echo "$line" | cut -f1)
 	name=$(echo "$line" | cut -f2-)
-  	SPACECHECK_OLDEST["$name"]="$size"
+	SPACECHECK_OLDEST["$name"]="$size"
 	DIRECTORIES["$name"]=1
 done < <(tail -n +2 -- "$OLDESTFILE")
 
@@ -110,9 +110,9 @@ for key in "${!DIRECTORIES[@]}"; do
 	new_size="${SPACECHECK_NEWEST[$key]}"
 	if [ -z "$old_size" ]; then
 		echo -e "$new_size\t$key\tNEW"
-  	elif [ -z "$new_size" ]; then
-		if [ "$old_size" == "0" ]; then
-			display_size="0"
+	elif [ -z "$new_size" ]; then
+		if [ "$old_size" == "0" ] || [ "$old_size" == "NA" ]; then
+			display_size="$old_size"
 		else
 			display_size="-$old_size"
 		fi
@@ -120,7 +120,7 @@ for key in "${!DIRECTORIES[@]}"; do
 		echo -e "$display_size\t$key\tREMOVED"
 	elif [ "$old_size" == "NA" ] || [ "$new_size" == "NA" ]; then
 		echo -e "NA\t$key"
-  	else
+	else
 		diff=$((new_size - old_size))
 		echo -e "$diff\t$key"
 	fi
