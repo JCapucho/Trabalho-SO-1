@@ -1,5 +1,5 @@
 Error: Unknown option
-Usage: /home/capucho/universidade/2ano1/SO/pratico/spacecheck.sh [options] [dir...]
+Usage: spacecheck.sh [options] [dir...]
 
 Options:
 	-h:          Shows this message

@@ -11,7 +11,7 @@ help() {
 		>&2 echo "Error: $1"
 	fi
 
-	>&2 echo "Usage: $PROGRAM_NAME [options] <new> <old>"
+	>&2 echo "Usage: $(basename "$PROGRAM_NAME") [options] <new> <old>"
 	>&2 printf "\n"
 	>&2 echo "Options:"
 	>&2 echo -e "\t-h:          Shows this message"

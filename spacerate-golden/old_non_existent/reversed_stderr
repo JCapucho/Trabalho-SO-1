@@ -1,5 +1,5 @@
 Error: File `old` does not exist
-Usage: /home/capucho/universidade/2ano1/SO/pratico/spacerate.sh [options] <new> <old>
+Usage: spacerate.sh [options] <new> <old>
 
 Options:
 	-h:          Shows this message
