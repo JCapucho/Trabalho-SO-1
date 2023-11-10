@@ -266,3 +266,97 @@ Ao mesmo tempo também adicionamos ao dicionário \Verb|DIRECTORIES| o nome do f
 
 \subsection{Obter as diferenças entre cada ficheiro}
 
+Agora que já temos os dados guardados em dicionários podemos começar a comparar os dois ficheiros.
+Para isso começamos por iterar sobre os diretórios.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    for key in "${!DIRECTORIES[@]}"; do
+      # ...
+    done
+  \end{minted}
+\end{listing}
+
+Para simplificar o código guardamos os tamanhos dos diretórios em variáveis.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+      old_size="${SPACECHECK_OLDEST[$key]}"
+      new_size="${SPACECHECK_NEWEST[$key]}"
+  \end{minted}
+\end{listing}
+
+Caso o \Verb|old_size| seja vazio significa que o diretório não existe no ficheiro antigo mas existe no novo, logo não precisamos de calcular a diferença e baste adicionar \Verb|NEW| no fim.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+      if [ -z "$old_size" ]; then
+        echo -e "$new_size\t$key\tNEW"
+      ...
+  \end{minted}
+\end{listing}
+
+Caso o \Verb|new_size| seja vazio significa que o diretório não existe no ficheiro novo mas existe no antigo, logo não precisamos de calcular a diferença e baste adicionar \Verb|REMOVED| no fim.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    ...
+    elif [ -z "$new_size" ]; then
+      if [ "$old_size" == "0" ]; then
+        display_size="0"
+      elif [ "$old_size" == "NA" ]; then
+        display_size="NA"
+      else
+        display_size="-$old_size"
+      fi
+
+      echo -e "$display_size\t$key\tREMOVED"
+    ...
+  \end{minted}
+\end{listing}
+
+Aqui para não imprimir \Verb|"-0"| no caso do ficheiro não ocupar espaço adicionamos ainda uma condição a verificar se o tamanho é 0.
+O mesmo acontece para o caso de ser \Verb|NA|.
+
+Caso algum dos dois tamanhos seja \Verb|NA| o resultado impresso será \Verb|NA|.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    ...
+    elif [ "$old_size" == "NA" ] || [ "$new_size" == "NA" ]; then
+      echo -e "NA\t$key"
+    ...
+  \end{minted}
+\end{listing}
+
+Por fim, se os dois tamanhos existirem e não forem \Verb|NA| então calculamos a diferença entre eles e imprimimos o resultado.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    else
+      diff=$((new_size - old_size))
+      echo -e "$diff\t$key"
+    fi
+    ...
+  \end{minted}
+\end{listing}
+
+\subsection{Processamento de argumentos}
+
+Para o processamento dos argumentos usamos o comando \mintinline{bash}{getopts} com o padrão \mintinline{bash}{":hral:"}.
+
+A opção \Verb|-h| imprime a seguinte mensagem:
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    Usage: spacerate.sh [options] <new> <old>
+
+    Options:
+      -h:          Shows this message
+      -r:          Print in reverse order
+      -a:          Order by file name
+      -l N:        Only show up to N lines
+  \end{minted}
+\end{listing}
+
+Em relação ao processamento dos argumentos é feito da mesma forma que no \mintinline{bash}{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:args})
