@@ -8,29 +8,25 @@ Para conseguir gerir e monitorizar o espaço ocupado em disco dentro de
 diretórios é primeiro essencial saber quais são os diretórios a ser usados.
 
 Usando os argumentos passados ao script com os diretórios a serem pesquisados,
-descobrimos os seus sub-diretórios todos atraves do comando
+descobrimos os seus sub-diretórios todos através do comando
 \mintinline{bash}{find} da seguinte maneira:
 \begin{listing}[H]
   \begin{minted}{bash}
-    find "$@" -type d -print0 2>/dev/null
+    find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null
   \end{minted}
 \end{listing}
 Procuramos dentro dos diretórios passados todos os seus sub-diretórios
 (\mintinline{bash}{-type d}). Todos os erros não nos são relevantes por isso
-não os imprimimos. A forma como os caminhos dos diretórios são impressos também
-é relevante sendo que eles acabam com \Verb|'\0'| e não \Verb|'\n'| como normalmente
-seriam.
+não os imprimimos.
 
-O motivo para fazer a impressão dos caminhos desta maneira será evidente mais
+É de notar que os caminhos dos diretórios são impressos separados por \Verb|'\0'| e não por \Verb|'\n'| como normalmente seriam.
+A razão para fazer desta maneira será explicada mais 
 tarde quanto começarmos a iterar sobre eles.
 
 \subsection{Escolher os ficheiros}
 
-Após obter todos os sub-diretórios dos diretórios passados é importante
-conseguir trabalhar sobre cada um deles, para isso usamos o
-\mintinline{bash}{while read} da seguinte maneira:
+Após obter os diretórios todos é importante conseguir trabalhar sobre cada um deles, para isso usamos o \mintinline{bash}{while read} da seguinte maneira:
 
-\mintinline{bash}{find} da seguinte maneira:
 \begin{listing}[H]
   \begin{minted}{bash}
     while IFS= read -r -d $'\0' path; do
@@ -40,14 +36,14 @@ conseguir trabalhar sobre cada um deles, para isso usamos o
 \end{listing}
 
 Aqui colocamos o \mintinline{bash}{IFS} nulo para não separar por espaços,
-sendo que cada diretório pode conte-los. O \mintinline{bash}{-d $'\0'} tem um
-papel importante, visto que como nós estamos a passar uma string de paths
+sendo que diretórios podem conte-los e não queremos cortá-los. O \mintinline{bash}{-d $'\0'} tem um
+papel importante, visto que como nós estamos a passar uma string de caminhos
 separados por \Verb|'\0'| é essencial neste passo mudar o delimitador do
 \mintinline{bash}{while read} para o \Verb|'\0'|.
 
-Com isto podemos começar a procurar os ficheiros a serem usados no calculo do
-tamanho usando outro \mintinline{bash}{find}, contudo desta vez ele terá
-algumas diferenças grandes.
+Com isto podemos começar a procurar os ficheiros a serem usados no cálculo do
+tamanho através de outro \mintinline{bash}{find}, contudo desta vez ele terá
+algumas diferenças.
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -56,19 +52,19 @@ algumas diferenças grandes.
 \end{listing}
 
 O \mintinline{bash}{path} vem do loop e o \mintinline{bash}{${FIND_OPTS[@]}}
-será falado no processamento de argumentos, mas contém as opções relevantes
+será falado no processamento de argumentos (\ref{sec:args}), mas contém as opções relevantes
 para a pesquisa de acordo com os argumentos passados pelo utilizador.\label{sec:find_opts}
 
 Além do array de opções a principal diferença deste \mintinline{bash}{find}
-para o outro é que este apenas procura por ficheiros, e como no outro imprime
+para o outro é que este apenas procura por ficheiros (\Verb|type -f|) mas tal como no outro imprime
 os caminhos separados por \Verb|'\0'|.
 
 \subsection{Calcular o tamanho de cada diretório}
 
 Uma vez que já temos uma lista com todos os ficheiros referentes a um
-diretório, o ultimo passo que falta é calcular o tamanho de todos ficheiros.
+diretório, o último passo que falta é calcular o tamanho de todos ficheiros.
 Felizmente para nós o comando \mintinline{bash}{du} consegue facilmente fazer
-isso para nós utilizando o seguinte comando.
+isso utilizando o seguinte comando.
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -77,37 +73,36 @@ isso para nós utilizando o seguinte comando.
 \end{listing}
 
 O commando \mintinline{bash}{du -b} serve para obter o espaço utilizado pelos
-ficheiros em bytes. O argumento \mintinline{bash}{--files0-from=-} é bastante
-importante aqui sendo que o seu significado é ler do \Verb|stdin| delimitado
-por \Verb|'\0'|, que é como nós formatamos os dados no passo anterior com o
+ficheiros em bytes. O argumento \mintinline{bash}{--files0-from=-} é necessário aqui visto que serve para ler caminhos do \Verb|stdin| separados por \Verb|'\0'|, que é como nós formatámos os dados no passo anterior com o
 \mintinline{bash}{-print0} no \mintinline{bash}{find}. Por fim, usamos a opção
-\mintinline{bash}{-cs} na qual o \Verb|c| mostra o total do tamanho dos
-ficheiros passados (ou seja a soma) e o \Verb|s| serve para evitar repetições
-(o seu unico proposito é eficiencia).
+\mintinline{bash}{-cs} na qual o \Verb|c| mostra a soma dos tamanhos de todos os ficheiros e o \Verb|s| serve para evitar repetições
+(o seu único propósito é eficiência).
 
-De seguida uso o comando \mintinline{bash}{cut -f1} para obter tudo até o
-primeiro \Verb|'\t'| e por fim damos \mintinline{bash}{tail -n1} para extrair
-so a ultima linha, que é a que contem o valor total.
+De seguida usamos o comando \mintinline{bash}{cut -f1} para obter tudo até o
+primeiro \Verb|'\t'| e, por fim, damos \mintinline{bash}{tail -n1} para extrair
+só a última linha, que é a que contém o valor total.
 
-\subsection{Processamento de argumentos}
+Se ocorrer algum erro no \mintinline{bash}{du} o tamanho do diretório será substituido por \Verb|NA|.
+
+\subsection{Processamento de argumentos}\label{sec:args}
 
 Para o processamento dos argumentos usamos o comando \mintinline{bash}{getopts} com o padrão \mintinline{bash}{":hran:d:s:l:"}.
 
 A opção \Verb|-h| imprime a seguinte mensagem:
 
 \begin{listing}[H]
-\begin{minted}{bash}
-Usage: ./spacecheck.sh [options] [dir...]
+  \begin{minted}{bash}
+    Usage: ./spacecheck.sh [options] [dir...]
 
-Options:
-	-h:          Shows this message
-	-n PATTERN:  Filter files by name according to the pattern
-	-d N:        Filter files by date of modification
-	-s N:        Filter files by file size
-	-r:          Print in reverse order
-	-a:          Order by file name
-	-l N:        Only show up to N lines
-\end{minted}
+    Options:
+      -h:          Shows this message
+      -n PATTERN:  Filter files by name according to the pattern
+      -d N:        Filter files by date of modification
+      -s N:        Filter files by file size
+      -r:          Print in reverse order
+      -a:          Order by file name
+      -l N:        Only show up to N lines
+  \end{minted}
 \end{listing}
 
 A opção \Verb|-n| está implementada da seguinte forma:
@@ -119,10 +114,9 @@ FIND_OPTS+=("-regextype" "posix-extended" "-regex" "^.*/$pattern$")
 \end{minted}
 \end{listing}
 
-Adicionamos às opções do comando \mintinline{bash}{find} o tipo de regex que é \Verb|posix extended|, pelo que é um dos mais completos e utilizados.
-De seguida passamos uma regex que processa tudo depois da ultima \Verb|'/'| de acordo com o padrão passado pelo utilizador.
-
-As opções do \Verb|FIND_OPTS| são passadas no \Verb|find| falado anteriormente \ref{sec:find_opts}.
+Começamos por escolher o tipo de expressão regular que queremos usar, neste caso \Verb|posix-extended|.
+De seguida passamos uma expressão regular que processa tudo depois da última \Verb|'/'| de acordo com o padrão passado pelo utilizador.
+As opções do \Verb|FIND_OPTS| são usadas pelo \Verb|find| falado anteriormente (\ref{sec:find_opts}).
 
 A opção \Verb|-d| está implementada da seguinte forma:
 
@@ -134,34 +128,34 @@ A opção \Verb|-d| está implementada da seguinte forma:
 \end{minted}
 \end{listing}
 
-A opção \Verb|-newermt| do find faz exatamente isso tendo como argumento a data em tempo unix, que é obtido usando \mintinline{bash}{date -d "$data" +%s}.
+A opção \Verb|-newermt| faz com que o \Verb|find| apenas procure por ficheiros com data de modificação mais recente ou igual à data passada. Esta é convertida para unix time através do comando \mintinline{bash}{date -d "$data" +%s}, e é assim que é passada ao \Verb|find|.
 
 Quanto à opção \Verb|-s| a forma como é implementada é semelhante às outras:
 
 \begin{listing}[H]
   \begin{minted}{bash}
-			tamanho="$OPTARG"
-      if [[ "${tamanho:0-1}" =~ ^[0-9]+$ ]]; then
-				tamanho+="c"
-			fi
-			if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
-				tamanho="+$tamanho"
-			fi
-			FIND_OPTS+=("-size" "$tamanho")
+    tamanho="$OPTARG"
+    if [[ "${tamanho:0-1}" =~ ^[0-9]+$ ]]; then
+      tamanho+="c"
+    fi
+    if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
+      tamanho="+$tamanho"
+    fi
+    FIND_OPTS+=("-size" "$tamanho")
   \end{minted}
 \end{listing}
 
-O primeiro \Verb|if| verifica se o ultimo carater é um número e caso seja adiciona um \Verb|'c'| no fim da string.
+O primeiro \Verb|if| verifica se o último caráter é um número e caso seja adiciona um \Verb|'c'| no fim da string.
 O \Verb|'c'| é para dizer que o tamanho está especificado em bytes.
 
-O segundo \Verb|if| verifica se o primeiro carater é um número e caso seja adiciona um \Verb|'+'| no inicio da string.
-O \Verb|'+'| é para especificar o tamanho é maior do que o tamanho passado.
+O segundo \Verb|if| verifica se o primeiro caráter é um número e caso seja adiciona um \Verb|'+'| no inicio da string.
+O \Verb|'+'| é para especificar o tamanho dos ficheiros tem de ser maior do que o tamanho passado.
 
 A opção \Verb|-r| está implementada de uma forma diferente sendo que no processamento dos argumentos apenas faz \mintinline{bash}{REVERSE_SORT=true}
 
 A opção \Verb|-a| está implementada da mesma forma que o \Verb|-r| sendo que apenas faz \mintinline{bash}{NAME_SORT=true}
 
-Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| o valor passado pelo utilizador.
+Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| a opção do \Verb|head| com o número de linhas passado pelo utilizador.
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -172,15 +166,15 @@ Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| o valor passado
 
 \subsection{Ordenar o output}\label{sec:sort}
 
-Para ordenar o output começamos por criar um array com todas as opções que serão utilizadas para o sort:
+Para ordenar o output começamos por criar um array com todas as opções que serão utilizadas para no \Verb|sort|:
 
 \begin{listing}[H]
   \begin{minted}{bash}
-    NAME_REVERSE_PREFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
-    SIZE_REVERSE_PREFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
+    NAME_REVERSE_SUFFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
+    SIZE_REVERSE_SUFFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
 
-    SORT_BY_NAME=("-k" "2$NAME_REVERSE_PREFIX")
-    SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_PREFIX")
+    SORT_BY_NAME=("-k" "2$NAME_REVERSE_SUFFIX")
+    SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_SUFFIX")
 
     if [ "$NAME_SORT" = true ] ; then
       SORT_OPTS+=( "${SORT_BY_NAME[@]}" "${SORT_BY_SIZE[@]}" )
@@ -191,14 +185,16 @@ Para ordenar o output começamos por criar um array com todas as opções que se
 \end{listing}
 
 O primeiro passo é saber se a ordem tem de ser inversa ou não.
-Para isso criamos duas variáveis \Verb|NAME_REVERSE_PREFIX| e \Verb|SIZE_REVERSE_PREFIX| que contêm o prefixo \Verb|-r| para o sort.
+Para isso criamos duas variáveis \Verb|NAME_REVERSE_SUFFIX| e \Verb|SIZE_REVERSE_SUFFIX| que contêm o sufixo \Verb|r| ou são uma string vazia.
+No caso do \Verb|SIZE_REVERSE_SUFFIX| ele por padrão vai ter o sufixo \Verb|r| visto que é a ordem pretendida quando não se passam argumentos ao script.
 
 Após isso criamos dois arrays \Verb|SORT_BY_NAME| e \Verb|SORT_BY_SIZE| que contêm as opções para ordenar por nome e por tamanho respetivamente.
 
 A opção \Verb|-k| do sort serve para especificar as colunas a serem usadas para ordenar.
-No primeiro array a coluna escolhida é a segunda e é concatenada com o prefixo \Verb|NAME_REVERSE_PREFIX| que é vazio caso a ordem seja inversa e \Verb|'r'| caso não seja.
-De forma semelhante no segundo array a coluna escolhida é a primeira com a opção \Verb|n| que serve para comparar numericamente e é concatenada com o prefixo \Verb|SIZE_REVERSE_PREFIX| que é vazio caso a ordem seja inversa e \Verb|'r'| caso não seja.
-É importante notar que o -k escolhe em que coluna começar e em qual acabar, sendo o padrão começar na coluna escolhida e acabar na ultima.
+No primeiro array a coluna escolhida é a segunda e é concatenada com o sufixo \Verb|NAME_REVERSE_SUFFIX| que é \Verb|r| caso a ordem seja inversa e vazio caso não seja.
+De forma semelhante no segundo array a coluna escolhida é a primeira com a opção \Verb|n| que serve para comparar numericamente e é concatenada com o sufixo \Verb|SIZE_REVERSE_SUFFIX| que é vazio caso a ordem seja inversa e \Verb|'r'| caso não seja.
+
+É importante notar que o -k escolhe em que coluna começar e em qual acabar, sendo o padrão começar na coluna escolhida e acabar na última.
 Por isso aqui no primeiro array apenas é especificada a coluna 2 e no segundo é especificada a coluna de inicio 1 e a de fim também 1.
 
 Após isso é verificado se a ordem é por nome ou por tamanho e adicionado ao array \Verb|SORT_OPTS| as opções respetivas pela ordem correta.
@@ -207,8 +203,8 @@ Por fim, para ordenar o output é usado o command \mintinline{bash}{sort "${SORT
 
 \subsection{Escolher o número de linhas}\label{sec:head}
 
-O ultimo passo é escolher o número de linhas a serem impressas.
-Como já temos o array \Verb|HEAD_OPTS| basta fazer para:
+O último passo é escolher o número de linhas a serem impressas.
+Como já temos o array \Verb|HEAD_OPTS| basta passar o output ordenado ao seguinte comando:
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -223,7 +219,7 @@ Se o número de opções for menor que 1 então imprime tudo, caso contrário im
 \subsection{Extrair os dados para dicionários}
 
 O primeiro e principal passo para começar a comparar os diretórios é colocá-los numa estrutura de dados que seja fácil de manipular.
-Para isso começamos por declarar dois dicionários vazios, um para cada ficheiro, mas também será criado um terceiro dicionário que será usado para obter todos os diretórios dos dois ficheiros, sem repetições.
+Para isso começamos por declarar dois dicionários, um para cada ficheiro, mas também será criado um terceiro dicionário que será usado para obter todos os diretórios dos dois ficheiros, sem repetições.
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -234,7 +230,9 @@ Para isso começamos por declarar dois dicionários vazios, um para cada ficheir
   \end{minted}
 \end{listing}
 
-Após isso é feito um \mintinline{bash}{while read} sobre os dois ficheiros passados como argumento ao script.
+Para facilitar a leitura do código chamamos ao primeiro ficheiro \Verb|NEWESTFILE| e ao segundo \Verb|OLDESTFILE|.
+
+Após isso são feitos dois \mintinline{bash}{while read} um para cada ficheiro passado como argumento ao script.
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -244,9 +242,10 @@ Após isso é feito um \mintinline{bash}{while read} sobre os dois ficheiros pas
   \end{minted}
 \end{listing}
 
-O mesmo faz-se para o ficheiro mais antigo.
+O mesmo faz-se para o \Verb|OLDESTFILE|.
 
 O \mintinline{bash}{tail -n +2} serve para ignorar a primeira linha do ficheiro, que contém o header.
+DOUBLE CHECK THIS
 O \mintinline{bash}{IFS=$'\n'} serve para separar as linhas por \Verb|'\n'| e não por espaços.
 
 Dentro do loop é feito o parsing de cada linha do ficheiro da seguinte maneira:
@@ -296,16 +295,14 @@ Caso o \Verb|old_size| seja vazio significa que o diretório não existe no fich
   \end{minted}
 \end{listing}
 
-Caso o \Verb|new_size| seja vazio significa que o diretório não existe no ficheiro novo mas existe no antigo, logo não precisamos de calcular a diferença e baste adicionar \Verb|REMOVED| no fim.
+Caso o \Verb|new_size| seja vazio significa que o diretório não existe no ficheiro novo mas existe no antigo, logo não precisamos de calcular a diferença e baste adicionar \Verb|REMOVED| no fim e fazer o inverso do tamanho, ou seja, adicionar um \Verb|'-'| no inicio do size.
 
 \begin{listing}[H]
   \begin{minted}{bash}
     ...
     elif [ -z "$new_size" ]; then
-      if [ "$old_size" == "0" ]; then
-        display_size="0"
-      elif [ "$old_size" == "NA" ]; then
-        display_size="NA"
+      if [ "$old_size" == "0" ] || [ "$old_size" == "NA" ]; then
+        display_size="$old_size"
       else
         display_size="-$old_size"
       fi
@@ -315,8 +312,7 @@ Caso o \Verb|new_size| seja vazio significa que o diretório não existe no fich
   \end{minted}
 \end{listing}
 
-Aqui para não imprimir \Verb|"-0"| no caso do ficheiro não ocupar espaço adicionamos ainda uma condição a verificar se o tamanho é 0.
-O mesmo acontece para o caso de ser \Verb|NA|.
+Aqui para não imprimir \Verb|"-0"| ou \Verb|"-NA"| nos casos em que o \Verb|old_size| é \Verb|0| ou \Verb|NA| criamos uma variável \Verb|display_size| que vai ser usada para imprimir o tamanho.
 
 Caso algum dos dois tamanhos seja \Verb|NA| o resultado impresso será \Verb|NA|.
 
