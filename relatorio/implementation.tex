@@ -360,3 +360,40 @@ A opção \Verb|-h| imprime a seguinte mensagem:
 \end{listing}
 
 Em relação ao processamento dos argumentos é feito da mesma forma que no \mintinline{bash}{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:args})
+
+\subsection{Ordenar o output}
+
+Ver \ref{sec:sort}
+
+\subsection{Escolher o número de linhas}
+
+Ver \ref{sec:head}
+
+
+\section{Conclusão}
+
+Todos os argumentos e ficheiros são validados e caso não sejam válidos é impressa uma mensagem de erro e o programa termina.
+
+Além disso são verificados casos especiais como diretórios com um \Verb|'-'| no inicio.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    for dir in "$@"; do
+      if [ ! -d "$dir" ]; then
+        1>&2 echo "ERROR: \"$dir\" does not exist"
+      fi
+      case "$dir" in
+        -*)
+          if [ ! -d "$dir" ]; then
+            1>&2 echo "+note: did you mean to pass an argument?"
+            1>&2 echo "       all arguments must precede the directory paths"
+          fi
+          # Add `./` to directories beginning with a dash (`-`), so that find, doesn't
+          # mistake them, for functions.
+          DIRS_TO_SEARCH+=("./$dir");;
+        *)
+          DIRS_TO_SEARCH+=("$dir");;
+      esac
+    done
+  \end{minted}
+\end{listing}
