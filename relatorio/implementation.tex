@@ -170,7 +170,7 @@ Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| o valor passado
   \end{minted}
 \end{listing}
 
-\subsection{Ordenar o output}
+\subsection{Ordenar o output}\label{sec:sort}
 
 Para ordenar o output começamos por criar um array com todas as opções que serão utilizadas para o sort:
 
@@ -205,7 +205,7 @@ Após isso é verificado se a ordem é por nome ou por tamanho e adicionado ao a
 
 Por fim, para ordenar o output é usado o command \mintinline{bash}{sort "${SORT_OPTS[@]}"} no fim do \Verb|while|.
 
-\subsection{Escolher o número de linhas}
+\subsection{Escolher o número de linhas}\label{sec:head}
 
 O ultimo passo é escolher o número de linhas a serem impressas.
 Como já temos o array \Verb|HEAD_OPTS| basta fazer para:
