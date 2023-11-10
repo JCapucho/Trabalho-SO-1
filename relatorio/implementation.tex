@@ -220,9 +220,49 @@ Se o número de opções for menor que 1 então imprime tudo, caso contrário im
 
 \section{Spacerate}
 
-\subsection{Extrair os dados para um dicionário}
+\subsection{Extrair os dados para dicionários}
 
-\subsection{Obter uma lista de todos os caminhos}
+O primeiro e principal passo para começar a comparar os diretórios é colocá-los numa estrutura de dados que seja fácil de manipular.
+Para isso começamos por declarar dois dicionários vazios, um para cada ficheiro, mas também será criado um terceiro dicionário que será usado para obter todos os diretórios dos dois ficheiros, sem repetições.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    declare -A SPACECHECK_NEWEST
+    declare -A SPACECHECK_OLDEST
+
+    declare -A DIRECTORIES
+  \end{minted}
+\end{listing}
+
+Após isso é feito um \mintinline{bash}{while read} sobre os dois ficheiros passados como argumento ao script.
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    while IFS=$'\n' read -r line; do
+      # ...
+    done < <(tail -n +2 -- "$NEWESTFILE")
+  \end{minted}
+\end{listing}
+
+O mesmo faz-se para o ficheiro mais antigo.
+
+O \mintinline{bash}{tail -n +2} serve para ignorar a primeira linha do ficheiro, que contém o header.
+O \mintinline{bash}{IFS=$'\n'} serve para separar as linhas por \Verb|'\n'| e não por espaços.
+
+Dentro do loop é feito o parsing de cada linha do ficheiro da seguinte maneira:
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+      size=$(echo "$line" | cut -f1)
+      name=$(echo "$line" | cut -f2-)
+      SPACECHECK_NEWEST["$name"]="$size"
+      DIRECTORIES["$name"]=1
+  \end{minted}
+\end{listing}
+
+Como as colunas estão separadas por \Verb|'\t'| usamos o \mintinline{bash}{cut -f1} para obter a primeira coluna e o \mintinline{bash}{cut -f2-} para obter todas as outras.
+Após isso é adicionado ao dicionário \Verb|SPACECHECK_NEWEST| o nome do ficheiro como chave e o tamanho como valor.
+Ao mesmo tempo também adicionamos ao dicionário \Verb|DIRECTORIES| o nome do ficheiro como chave e o valor 1, que como é um dicionário não repete as chaves, logo vamos obter uma lista com todos os diretórios dos dois ficheiros.
 
 \subsection{Obter as diferenças entre cada ficheiro}
 
