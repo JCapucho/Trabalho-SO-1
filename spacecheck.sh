@@ -105,11 +105,11 @@ if [ "$#" -lt 1 ]; then
 	help "Not enough arguments"
 fi
 
-NAME_REVERSE_PREFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
-SIZE_REVERSE_PREFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
+NAME_REVERSE_SUFFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
+SIZE_REVERSE_SUFFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
 
-SORT_BY_NAME=("-k" "2$NAME_REVERSE_PREFIX")
-SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_PREFIX")
+SORT_BY_NAME=("-k" "2$NAME_REVERSE_SUFFIX")
+SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_SUFFIX")
 
 if [ "$NAME_SORT" = true ] ; then
 	SORT_OPTS+=( "${SORT_BY_NAME[@]}" "${SORT_BY_SIZE[@]}" )
