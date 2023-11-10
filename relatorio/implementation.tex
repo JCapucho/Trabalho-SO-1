@@ -172,6 +172,39 @@ Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| o valor passado
 
 \subsection{Ordenar o output}
 
+Para ordenar o output começamos por criar um array com todas as opções que serão utilizadas para o sort:
+
+\begin{listing}[H]
+  \begin{minted}{bash}
+    NAME_REVERSE_PREFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
+    SIZE_REVERSE_PREFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
+
+    SORT_BY_NAME=("-k" "2$NAME_REVERSE_PREFIX")
+    SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_PREFIX")
+
+    if [ "$NAME_SORT" = true ] ; then
+      SORT_OPTS+=( "${SORT_BY_NAME[@]}" "${SORT_BY_SIZE[@]}" )
+    else
+      SORT_OPTS+=( "${SORT_BY_SIZE[@]}" "${SORT_BY_NAME[@]}" )
+    fi
+  \end{minted}
+\end{listing}
+
+O primeiro passo é saber se a ordem tem de ser inversa ou não.
+Para isso criamos duas variáveis \Verb|NAME_REVERSE_PREFIX| e \Verb|SIZE_REVERSE_PREFIX| que contêm o prefixo \Verb|-r| para o sort.
+
+Após isso criamos dois arrays \Verb|SORT_BY_NAME| e \Verb|SORT_BY_SIZE| que contêm as opções para ordenar por nome e por tamanho respetivamente.
+
+A opção \Verb|-k| do sort serve para especificar as colunas a serem usadas para ordenar.
+No primeiro array a coluna escolhida é a segunda e é concatenada com o prefixo \Verb|NAME_REVERSE_PREFIX| que é vazio caso a ordem seja inversa e \Verb|'r'| caso não seja.
+De forma semelhante no segundo array a coluna escolhida é a primeira com a opção \Verb|n| que serve para comparar numericamente e é concatenada com o prefixo \Verb|SIZE_REVERSE_PREFIX| que é vazio caso a ordem seja inversa e \Verb|'r'| caso não seja.
+É importante notar que o -k escolhe em que coluna começar e em qual acabar, sendo o padrão começar na coluna escolhida e acabar na ultima.
+Por isso aqui no primeiro array apenas é especificada a coluna 2 e no segundo é especificada a coluna de inicio 1 e a de fim também 1.
+
+Após isso é verificado se a ordem é por nome ou por tamanho e adicionado ao array \Verb|SORT_OPTS| as opções respetivas pela ordem correta.
+
+Por fim, para ordenar o output é usado o command \mintinline{bash}{sort "${SORT_OPTS[@]}"} no fim do \Verb|while|.
+
 \subsection{Escolher o número de linhas}
 
 \section{Spacerate}
