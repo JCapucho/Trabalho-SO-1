@@ -10,6 +10,7 @@
 % Add support for portuguese writing rules
 \usepackage[portuguese]{babel}
 \babelprovide[transforms = hyphen.repeat]{portuguese}
+\usepackage{csquotes}
 
 % Makes all references hyperlinked
 \usepackage[hidelinks]{hyperref}
@@ -32,6 +33,8 @@
 % Use TeX box for the minted environment
 \usepackage{xpatch}
 \xpretocmd{\minted}{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}}{}{}
+% Inline code commands
+\newmintinline{bash}{}
 % Number ranges
 \usepackage[detect-all]{siunitx}
 

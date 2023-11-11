@@ -9,14 +9,14 @@ diretórios é primeiro essencial saber quais são os diretórios a ser usados.
 
 Usando os argumentos passados ao script com os diretórios a serem pesquisados,
 descobrimos os seus sub-diretórios todos através do comando
-\mintinline{bash}{find} da seguinte maneira:
+\bashinline{find} da seguinte maneira:
 \begin{listing}[H]
   \begin{minted}{bash}
     find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null
   \end{minted}
 \end{listing}
 Procuramos dentro dos diretórios passados todos os seus sub-diretórios
-(\mintinline{bash}{-type d}). Todos os erros não nos são relevantes por isso
+(\bashinline{-type d}). Todos os erros não nos são relevantes por isso
 não os imprimimos.
 
 É de notar que os caminhos dos diretórios são impressos separados por \Verb|'\0'| e não por \Verb|'\n'| como normalmente seriam.
@@ -25,7 +25,7 @@ tarde quanto começarmos a iterar sobre eles.
 
 \subsection{Escolher os ficheiros}
 
-Após obter os diretórios todos é importante conseguir trabalhar sobre cada um deles, para isso usamos o \mintinline{bash}{while read} da seguinte maneira:
+Após obter os diretórios todos é importante conseguir trabalhar sobre cada um deles, para isso usamos o \bashinline{while read} da seguinte maneira:
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -35,14 +35,14 @@ Após obter os diretórios todos é importante conseguir trabalhar sobre cada um
   \end{minted}
 \end{listing}
 
-Aqui colocamos o \mintinline{bash}{IFS} nulo para não separar por espaços,
-sendo que diretórios podem conte-los e não queremos cortá-los. O \mintinline{bash}{-d $'\0'} tem um
+Aqui colocamos o \bashinline{IFS} nulo para não separar por espaços,
+sendo que diretórios podem conte-los e não queremos cortá-los. O \bashinline|-d $'\0'| tem um
 papel importante, visto que como nós estamos a passar uma string de caminhos
 separados por \Verb|'\0'| é essencial neste passo mudar o delimitador do
-\mintinline{bash}{while read} para o \Verb|'\0'|.
+\bashinline{while read} para o \Verb|'\0'|.
 
 Com isto podemos começar a procurar os ficheiros a serem usados no cálculo do
-tamanho através de outro \mintinline{bash}{find}, contudo desta vez ele terá
+tamanho através de outro \bashinline{find}, contudo desta vez ele terá
 algumas diferenças.
 
 \begin{listing}[H]
@@ -51,11 +51,11 @@ algumas diferenças.
   \end{minted}
 \end{listing}
 
-O \mintinline{bash}{path} vem do loop e o \mintinline{bash}{${FIND_OPTS[@]}}
+O \bashinline{path} vem do loop e o \bashinline|${FIND_OPTS[@]}|
 será falado no processamento de argumentos (\ref{sec:args}), mas contém as opções relevantes
 para a pesquisa de acordo com os argumentos passados pelo utilizador.\label{sec:find_opts}
 
-Além do array de opções a principal diferença deste \mintinline{bash}{find}
+Além do array de opções a principal diferença deste \bashinline{find}
 para o outro é que este apenas procura por ficheiros (\Verb|type -f|) mas tal como no outro imprime
 os caminhos separados por \Verb|'\0'|.
 
@@ -63,7 +63,7 @@ os caminhos separados por \Verb|'\0'|.
 
 Uma vez que já temos uma lista com todos os ficheiros referentes a um
 diretório, o último passo que falta é calcular o tamanho de todos ficheiros.
-Felizmente para nós o comando \mintinline{bash}{du} consegue facilmente fazer
+Felizmente para nós o comando \bashinline{du} consegue facilmente fazer
 isso utilizando o seguinte comando.
 
 \begin{listing}[H]
@@ -72,21 +72,21 @@ isso utilizando o seguinte comando.
   \end{minted}
 \end{listing}
 
-O commando \mintinline{bash}{du -b} serve para obter o espaço utilizado pelos
-ficheiros em bytes. O argumento \mintinline{bash}{--files0-from=-} é necessário aqui visto que serve para ler caminhos do \Verb|stdin| separados por \Verb|'\0'|, que é como nós formatámos os dados no passo anterior com o
-\mintinline{bash}{-print0} no \mintinline{bash}{find}. Por fim, usamos a opção
-\mintinline{bash}{-cs} na qual o \Verb|c| mostra a soma dos tamanhos de todos os ficheiros e o \Verb|s| serve para evitar repetições
+O commando \bashinline{du -b} serve para obter o espaço utilizado pelos
+ficheiros em bytes. O argumento \bashinline{--files0-from=-} é necessário aqui visto que serve para ler caminhos do \Verb|stdin| separados por \Verb|'\0'|, que é como nós formatámos os dados no passo anterior com o
+\bashinline{-print0} no \bashinline{find}. Por fim, usamos a opção
+\bashinline{-cs} na qual o \Verb|c| mostra a soma dos tamanhos de todos os ficheiros e o \Verb|s| serve para evitar repetições
 (o seu único propósito é eficiência).
 
-De seguida usamos o comando \mintinline{bash}{cut -f1} para obter tudo até o
-primeiro \Verb|'\t'| e, por fim, damos \mintinline{bash}{tail -n1} para extrair
+De seguida usamos o comando \bashinline{cut -f1} para obter tudo até o
+primeiro \Verb|'\t'| e, por fim, damos \bashinline{tail -n1} para extrair
 só a última linha, que é a que contém o valor total.
 
-Se ocorrer algum erro no \mintinline{bash}{du} o tamanho do diretório será substituido por \Verb|NA|.
+Se ocorrer algum erro no \bashinline{du} o tamanho do diretório será substituido por \Verb|NA|.
 
 \subsection{Processamento de argumentos}\label{sec:args}
 
-Para o processamento dos argumentos usamos o comando \mintinline{bash}{getopts} com o padrão \mintinline{bash}{":hran:d:s:l:"}.
+Para o processamento dos argumentos usamos o comando \bashinline{getopts} com o padrão \bashinline{":hran:d:s:l:"}.
 
 A opção \Verb|-h| imprime a seguinte mensagem:
 
@@ -128,7 +128,7 @@ A opção \Verb|-d| está implementada da seguinte forma:
 \end{minted}
 \end{listing}
 
-A opção \Verb|-newermt| faz com que o \Verb|find| apenas procure por ficheiros com data de modificação mais recente ou igual à data passada. Esta é convertida para unix time através do comando \mintinline{bash}{date -d "$data" +%s}, e é assim que é passada ao \Verb|find|.
+A opção \Verb|-newermt| faz com que o \Verb|find| apenas procure por ficheiros com data de modificação mais recente ou igual à data passada. Esta é convertida para unix time através do comando \bashinline{date -d "$data" +%s}, e é assim que é passada ao \Verb|find|.
 
 Quanto à opção \Verb|-s| a forma como é implementada é semelhante às outras:
 
@@ -151,9 +151,9 @@ O \Verb|'c'| é para dizer que o tamanho está especificado em bytes.
 O segundo \Verb|if| verifica se o primeiro caráter é um número e caso seja adiciona um \Verb|'+'| no inicio da string.
 O \Verb|'+'| é para especificar o tamanho dos ficheiros tem de ser maior do que o tamanho passado.
 
-A opção \Verb|-r| está implementada de uma forma diferente sendo que no processamento dos argumentos apenas faz \mintinline{bash}{REVERSE_SORT=true}
+A opção \Verb|-r| está implementada de uma forma diferente sendo que no processamento dos argumentos apenas faz \bashinline{REVERSE_SORT=true}
 
-A opção \Verb|-a| está implementada da mesma forma que o \Verb|-r| sendo que apenas faz \mintinline{bash}{NAME_SORT=true}
+A opção \Verb|-a| está implementada da mesma forma que o \Verb|-r| sendo que apenas faz \bashinline{NAME_SORT=true}
 
 Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| a opção do \Verb|head| com o número de linhas passado pelo utilizador.
 
@@ -199,7 +199,7 @@ Por isso aqui no primeiro array apenas é especificada a coluna 2 e no segundo �
 
 Após isso é verificado se a ordem é por nome ou por tamanho e adicionado ao array \Verb|SORT_OPTS| as opções respetivas pela ordem correta.
 
-Por fim, para ordenar o output é usado o command \mintinline{bash}{sort "${SORT_OPTS[@]}"} no fim do \Verb|while|.
+Por fim, para ordenar o output é usado o command \bashinline{sort "${SORT_OPTS[@]}"} no fim do \Verb|while|.
 
 \subsection{Escolher o número de linhas}\label{sec:head}
 
@@ -232,7 +232,7 @@ Para isso começamos por declarar dois dicionários, um para cada ficheiro, mas 
 
 Para facilitar a leitura do código chamamos ao primeiro ficheiro \Verb|NEWESTFILE| e ao segundo \Verb|OLDESTFILE|.
 
-Após isso são feitos dois \mintinline{bash}{while read} um para cada ficheiro passado como argumento ao script.
+Após isso são feitos dois \bashinline{while read} um para cada ficheiro passado como argumento ao script.
 
 \begin{listing}[H]
   \begin{minted}{bash}
@@ -244,9 +244,9 @@ Após isso são feitos dois \mintinline{bash}{while read} um para cada ficheiro 
 
 O mesmo faz-se para o \Verb|OLDESTFILE|.
 
-O \mintinline{bash}{tail -n +2} serve para ignorar a primeira linha do ficheiro, que contém o header.
+O \bashinline{tail -n +2} serve para ignorar a primeira linha do ficheiro, que contém o header.
 DOUBLE CHECK THIS
-O \mintinline{bash}{IFS=$'\n'} serve para separar as linhas por \Verb|'\n'| e não por espaços.
+O \bashinline|IFS=$'\n'| serve para separar as linhas por \Verb|'\n'| e não por espaços.
 
 Dentro do loop é feito o parsing de cada linha do ficheiro da seguinte maneira:
 
@@ -259,7 +259,7 @@ Dentro do loop é feito o parsing de cada linha do ficheiro da seguinte maneira:
   \end{minted}
 \end{listing}
 
-Como as colunas estão separadas por \Verb|'\t'| usamos o \mintinline{bash}{cut -f1} para obter a primeira coluna e o \mintinline{bash}{cut -f2-} para obter todas as outras.
+Como as colunas estão separadas por \Verb|'\t'| usamos o \bashinline{cut -f1} para obter a primeira coluna e o \bashinline{cut -f2-} para obter todas as outras.
 Após isso é adicionado ao dicionário \Verb|SPACECHECK_NEWEST| o nome do ficheiro como chave e o tamanho como valor.
 Ao mesmo tempo também adicionamos ao dicionário \Verb|DIRECTORIES| o nome do ficheiro como chave e o valor 1, que como é um dicionário não repete as chaves, logo vamos obter uma lista com todos os diretórios dos dois ficheiros.
 
@@ -339,7 +339,7 @@ Por fim, se os dois tamanhos existirem e não forem \Verb|NA| então calculamos 
 
 \subsection{Processamento de argumentos}
 
-Para o processamento dos argumentos usamos o comando \mintinline{bash}{getopts} com o padrão \mintinline{bash}{":hral:"}.
+Para o processamento dos argumentos usamos o comando \bashinline{getopts} com o padrão \bashinline{":hral:"}.
 
 A opção \Verb|-h| imprime a seguinte mensagem:
 
@@ -355,7 +355,7 @@ A opção \Verb|-h| imprime a seguinte mensagem:
   \end{minted}
 \end{listing}
 
-Em relação ao processamento dos argumentos é feito da mesma forma que no \mintinline{bash}{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:args})
+Em relação ao processamento dos argumentos é feito da mesma forma que no \bashinline{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:args})
 
 \subsection{Ordenar o output}
 
