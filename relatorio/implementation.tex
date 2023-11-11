@@ -43,25 +43,135 @@ Vamos então começar por explorar cada um destes problemas e como foram resolvi
 
 \subsection{Encontrar os diretórios}
 
-Para conseguir gerir e monitorizar o espaço ocupado em disco dentro de
-diretórios é primeiro essencial saber quais são os diretórios a ser usados.
+O primeiro passo então é descobrir todos os diretórios e subdiretórios que terão
+de ser considerados pelo script.
 
-Usando os argumentos passados ao script com os diretórios a serem pesquisados,
-descobrimos os seus sub-diretórios todos através do comando
-\bashinline{find} da seguinte maneira:
+O comando \Verb|find| é ideal para esta situação, este permite descobrir
+recursivamente os ficheiros e subdiretórios de vários diretórios que são
+passados como argumentos. Além disso conseguimos filtrar os resultados para só
+obter diretórios. Logo uma primeira versão para resolver este problema seria
+parecida com algo semelhante ao código
+\ref{code:implementation_first_subdir_find}.
+
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
-    find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null
+    find "$@" -type d
   \end{minted}
+	\caption{Exemplo de como obter os subdiretórios}
+	\label{code:implementation_first_subdir_find}
 \end{listing}
-Procuramos dentro dos diretórios passados todos os seus sub-diretórios
-(\bashinline{-type d}). Todos os erros não nos são relevantes por isso
-não os imprimimos.
 
-É de notar que os caminhos dos diretórios são impressos separados por \Verb|'\0'| e não por \Verb|'\n'| como normalmente seriam.
-A razão para fazer desta maneira será explicada mais
-tarde quanto começarmos a iterar sobre eles.
+Este código parece ser a solução ideal para o problema, e em alguns aspetos é,
+por exemplo, esta primeira versão lida corretamente com argumentos que têm
+espaços. Mas o problema desta solução não é o facto de funcionar mas o resultado
+que produz.
+
+Se por exemplo, executássemos este comando num diretório \Verb|test| que têm
+dois subdiretórios \Verb|a| e \Verb|b|, obteríamos o seguinte resultado:
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{text}
+    test
+    test/a
+    test/b
+  \end{minted}
+	\cprotect\caption{Exemplo do resutlado obtido pelo \Verb|find|}
+\end{listing}
+
+Como podemos ver os resultados vêm separados por linhas novas (\Verb|\n|), isto
+para a vasta maioria dos casos funciona, no entanto a norma \emph{POSIX} define
+que um nome de ficheiro/diretório pode ser constituído por qualquer byte com a
+exceção do byte nulo (\bashinline|\0|) e da barra (\bashinline|/|)
+\cite{posix_path}.
+
+Isto implica que \bashinline|a\nd| é um nome completamente válido para um diretório,
+se executarmos o mesmo comando no diretório \Verb|test| onde agora existe este
+subdiretório, obtemos o seguinte resultado.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{text}
+    test/a
+    d
+    test/a
+    test/b
+  \end{minted}
+	\caption{Resultado obtido com um diretório que contêm uma linha nova}
+\end{listing}
+
+Apesar disto ser uma situação rara é uma possibilidade e como tal temos de a
+acautelar no nosso programa, mas já vimos que o caminho não pode conter bytes
+nulos e o \Verb|find| contêm uma opção \Verb|-print0| que invês de separar os
+resultados com uma linha nova, vai separar com o byte nulo \cite{find_man}.
+
+Chegamos assim então a segunda iteração do comando para obter os diretórios e
+subdiretórios apresentado no código \ref{code:implementation_second_subdir_find}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    find "$@" -type d -print0
+  \end{minted}
+	\caption{Segundo iteração do comando para obter os subdiretórios}
+	\label{code:implementation_second_subdir_find}
+\end{listing}
+
+No entanto esta versão ainda tem um problema, como já vimos os diretórios podem
+ter nomes pouco convencionais e se o nome começar com um híphen (\Verb|-|),
+estes vão ser interpretados pelo \Verb|find| como opções. Para resolver isto
+vamos ter de escapar manualmente todos os diretórios que começam com um híphen
+\footnote{Mais a frente o mesmo problema terá de ser resolvido noutros comandos,
+	estes ou aceitam um argumento especial \Verb|--| que sinaliza o fim das opções,
+	ou têm uma opção \Verb|-files0-from|. O primeiro não existe no \Verb|find|
+	devido a ordem pouco convencional dos argumentos, o segundo existe em algumas
+	versões do \Verb|find| mas é pouco comum, principalmente em distribuições que
+	não são baseadas nas ferramentas GNU. Logo decidimos pela opção manual.}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    DIRS_TO_SEARCH=()
+
+    for dir in "$@"; do
+      if [ ! -d "$dir" ]; then
+        1>&2 echo "ERROR: \"$dir\" does not exist"
+      fi
+      case "$dir" in
+        -*)
+          if [ ! -d "$dir" ]; then
+            1>&2 echo "+note: did you mean to pass an argument?"
+            1>&2 echo "       all arguments must precede the directory paths"
+          fi
+          # Add `./` to directories beginning with a dash (`-`), so that find
+          # doesn't mistake them, for options.
+          DIRS_TO_SEARCH+=("./$dir");;
+        *)
+          DIRS_TO_SEARCH+=("$dir");;
+      esac
+    done
+  \end{minted}
+	\caption{Implementação do escape de diretorias começadas por híphen}
+	\label{code:implementation_escape_options_find}
+\end{listing}
+
+O código \ref{code:implementation_escape_options_find}, mostra a implementação
+final para escapar os híphens no início do nome dos diretórios. Este código
+ainda implementa mensagens de erro para diretórios que não existem e mensagens
+de ajuda casos esses diretórios pareçam ser opções.
+
+Finalmente, é apresentado no código \ref{code:implementation_final_subdir_find}
+a implementação final do comando para obter os diretórios e subdiretórios.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    find "${DIRS_TO_SEARCH[@]}" -type d -print0
+  \end{minted}
+	\caption{Iteração final do comando para obter os subdiretórios}
+	\label{code:implementation_final_subdir_find}
+\end{listing}
 
 \subsection{Escolher os ficheiros}
 
