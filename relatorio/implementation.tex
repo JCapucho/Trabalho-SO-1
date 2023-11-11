@@ -55,8 +55,8 @@ algumas diferenças.
 \end{listing}
 
 O \bashinline{path} vem do loop e o \bashinline|${FIND_OPTS[@]}|
-será falado no processamento de argumentos (\ref{sec:args}), mas contém as opções relevantes
-para a pesquisa de acordo com os argumentos passados pelo utilizador.\label{sec:find_opts}
+será falado no processamento de argumentos (\ref{sec:implementation_arg_parsing}), mas contém as opções relevantes
+para a pesquisa de acordo com os argumentos passados pelo utilizador.\label{sec:implementation_find_opts}
 
 Além do array de opções a principal diferença deste \bashinline{find}
 para o outro é que este apenas procura por ficheiros (\Verb|type -f|) mas tal como no outro imprime
@@ -88,7 +88,7 @@ só a última linha, que é a que contém o valor total.
 
 Se ocorrer algum erro no \bashinline{du} o tamanho do diretório será substituido por \Verb|NA|.
 
-\subsection{Processamento de argumentos}\label{sec:args}
+\subsection{Processamento de argumentos}\label{sec:implementation_arg_parsing}
 
 Para o processamento dos argumentos usamos o comando \bashinline{getopts} com o padrão \bashinline{":hran:d:s:l:"}.
 
@@ -122,7 +122,7 @@ A opção \Verb|-n| está implementada da seguinte forma:
 
 Começamos por escolher o tipo de expressão regular que queremos usar, neste caso \Verb|posix-extended|.
 De seguida passamos uma expressão regular que processa tudo depois da última \Verb|'/'| de acordo com o padrão passado pelo utilizador.
-As opções do \Verb|FIND_OPTS| são usadas pelo \Verb|find| falado anteriormente (\ref{sec:find_opts}).
+As opções do \Verb|FIND_OPTS| são usadas pelo \Verb|find| falado anteriormente (\ref{sec:implementation_find_opts}).
 
 A opção \Verb|-d| está implementada da seguinte forma:
 
@@ -173,7 +173,7 @@ Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| a opção do \V
   \end{minted}
 \end{listing}
 
-\subsection{Ordenar o output}\label{sec:sort}
+\subsection{Ordenar o output}\label{sec:implementation_sort}
 
 Para ordenar o output começamos por criar um array com todas as opções que serão utilizadas para no \Verb|sort|:
 
@@ -211,7 +211,7 @@ Após isso é verificado se a ordem é por nome ou por tamanho e adicionado ao a
 
 Por fim, para ordenar o output é usado o command \bashinline{sort "${SORT_OPTS[@]}"} no fim do \Verb|while|.
 
-\subsection{Escolher o número de linhas}\label{sec:head}
+\subsection{Escolher o número de linhas}\label{sec:implementation_head}
 
 O último passo é escolher o número de linhas a serem impressas.
 Como já temos o array \Verb|HEAD_OPTS| basta passar o output ordenado ao seguinte comando:
@@ -376,15 +376,15 @@ A opção \Verb|-h| imprime a seguinte mensagem:
   \end{minted}
 \end{listing}
 
-Em relação ao processamento dos argumentos é feito da mesma forma que no \bashinline{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:args})
+Em relação ao processamento dos argumentos é feito da mesma forma que no \bashinline{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:implementation_arg_parsing})
 
 \subsection{Ordenar o output}
 
-Ver \ref{sec:sort}
+Ver \ref{sec:implementation_sort}
 
 \subsection{Escolher o número de linhas}
 
-Ver \ref{sec:head}
+Ver \ref{sec:implementation_head}
 
 
 \section{Conclusão}
