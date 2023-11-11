@@ -129,8 +129,8 @@ for dir in "$@"; do
 				1>&2 echo "+note: did you mean to pass an argument?"
 				1>&2 echo "       all arguments must precede the directory paths"
 			fi
-			# Add `./` to directories beginning with a dash (`-`), so that find, doesn't
-			# mistake them, for functions.
+			# Add `./` to directories beginning with a dash (`-`), so that find
+			# doesn't mistake them, for options.
 			DIRS_TO_SEARCH+=("./$dir");;
 		*)
 			DIRS_TO_SEARCH+=("$dir");;

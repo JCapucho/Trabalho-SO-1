@@ -1,6 +1,45 @@
 \chapter{Implementação}
 
-\section{Spacecheck}
+\section{Introdução}
+
+Neste trabalho foi nos pedido que críassemos dois scripts \emph{Bash}:
+\Verb|spacecheck.sh| e \Verb|spacerate.sh|, cada um destes desempharia uma
+função diferente mas complementares.
+
+O script \Verb|spacecheck.sh| é responsável por produzir um relatório que
+detalha o espaço ocupado por um diretório e como está distribuído pelos seus
+subdiretórios, com opções extra para controlar quais ficheiros contam para esta
+métrica.
+
+Os resultados da execução poderiam depois ser comparados com recurso ao script
+\Verb|spacerate.sh|, este calcularia a diferença entre os resultados e
+apresentaria ao utilizador como o tamanho dos diretórios variou e se foram
+introduzidos diretórios novos ou removidos.
+
+Nesta secção vamos detalhar como implementamos os nossos scripts, incluindo não
+só como funcionam mas também a lógica por detrás das nossas decisões para os
+construir desta maneira.
+
+Os scripts possuem uma parte semelhante aos dois significativa (por exemplo, o
+processamento de argumentos e o ordenamento de resultados) como tal iremos
+começar por discutir as partes específicas a cada programa e de seguida
+abordaremos as partes comuns.
+
+\cprotect\section{\Verb|spacecheck.sh|}
+
+O script \Verb|spacecheck.sh| como já foi referido mostra o espaço ocupado por
+um diretório e todos os seus sub diretórios, possuindo opções para filtrar os
+ficheiros a usar no cálculo do espaço ocupado.
+
+Podemos então dividir a implementação em três grandes problemas a resolver:
+
+\begin{enumerate}
+	\item Encontrar os diretórios e subdiretórios
+	\item Escolher os ficheiros que contam
+	\item Calcular o tamanho do diretório
+\end{enumerate}
+
+Vamos então começar por explorar cada um destes problemas e como foram resolvidos.
 
 \subsection{Encontrar os diretórios}
 
