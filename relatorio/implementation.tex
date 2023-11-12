@@ -25,7 +25,7 @@ processamento de argumentos e o ordenamento de resultados) como tal iremos
 começar por discutir as partes específicas a cada script e de seguida
 abordaremos as partes que são comuns a ambos.
 
-\cprotect\section{\Verb|spacecheck.sh|}
+\cprotect\section{\Verb|spacecheck.sh|}\label{sec:implementation_spacecheck}
 
 O script \Verb|spacecheck.sh| como já foi referido mostra o espaço ocupado por
 um diretório e todos os seus sub diretórios, possuindo opções para filtrar os
@@ -711,6 +711,18 @@ diferença do diretório nos dois ficheiros e o resultado é impresso.
   \end{minted}
 	\caption{Cálculo da diferença entre os dois ficheiros}
 \end{listing}
+
+\subsection{Limitações}
+
+Ao longo da secção \ref{sec:implementation_spacecheck} foi referido mais que uma
+vez que os diretórios poderiam ter nomes com linhas novas. No entanto, o
+\Verb|spacerate.sh| não lida com estes nomes. Isto acontece pois o resultado
+produzido pelo \Verb|spacecheck.sh| não possui qualquer tipo de indicação sobre
+onde uma entrada começa ou acaba, além de serem separadas por uma linha nova.
+
+Tendo isto em mente é impossível lidar corretamente com estes casos, sem definir
+um formato novo ou mais detalhado do resultado do \Verb|spacecheck.sh|, que nós
+sentimos que estava fora dos objetivos deste trabalho.
 
 \section{Processamento de argumentos}\label{sec:implementation_arg_parsing}
 
