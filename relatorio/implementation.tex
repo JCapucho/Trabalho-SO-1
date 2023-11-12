@@ -41,7 +41,7 @@ Podemos então dividir a implementação em três grandes problemas a resolver:
 
 Vamos então começar por explorar cada um destes problemas e como foram resolvidos.
 
-\subsection{Encontrar os diretórios}
+\subsection{Encontrar os diretórios}\label{sec:implementation_find_dirs}
 
 O primeiro passo então é descobrir todos os diretórios e subdiretórios que terão
 de ser considerados pelo script.
@@ -84,7 +84,7 @@ Como podemos ver os resultados vêm separados por linhas novas (\Verb|\n|), isto
 para a vasta maioria dos casos funciona, no entanto a norma \emph{POSIX} define
 que um nome de ficheiro/diretório pode ser constituído por qualquer byte com a
 exceção do byte nulo (\bashinline|\0|) e da barra (\bashinline|/|)
-\cite{posix_path}.
+\cite[60]{posix}.
 
 Isto implica que \bashinline|a\nd| é um nome completamente válido para um diretório,
 se executarmos o mesmo comando no diretório \Verb|test| onde agora existe este
@@ -173,7 +173,7 @@ a implementação final do comando para obter os diretórios e subdiretórios.
 	\label{code:implementation_final_subdir_find}
 \end{listing}
 
-\subsection{Escolher os ficheiros}
+\subsection{Escolher os ficheiros}\label{sec:implementation_choosing_files}
 
 Agora que já temos os diretórios é necessário selecionar todos os ficheiros que
 pertencem a um dado diretório e passam nos filtros definidos pelo utilizador.
@@ -319,6 +319,7 @@ por ficheiros maiores e menores (mas não iguais) ao tamanho com o prefixo
 \Verb|+| e \Verb|-| respetivamente.
 
 \subsection{Calcular o tamanho de cada diretório}
+\label{sec:implementation_calculate_size}
 
 Agora que já temos uma lista de todos os ficheiros pertencentes a um
 diretório, falta-nos apenas calcular o tamanho de todos ficheiros.
@@ -376,11 +377,131 @@ A versão do código \ref{code:implementation_final_size_calcultate} é a que fo
 implementada no programa final, esta produz o total do conteúdo dos ficheiros em
 bytes.
 
-De seguida usamos o comando \bashinline{cut -f1} para obter tudo até o
-primeiro \Verb|'\t'| e, por fim, damos \bashinline{tail -n1} para extrair
-só a última linha, que é a que contém o valor total.
+\subsection{Integração final}
 
-Se ocorrer algum erro no \bashinline{du} o tamanho do diretório será substituido por \Verb|NA|.
+Agora que já foram resolvidos todos os problemas individualmente resta apenas
+integrá-los todos de maneira a conseguir produzir a lista de tamanho ocupado por
+diretório.
+
+O primeiro passo é integrar o código para encontrar diretórios desnvolvido na
+secção \ref{sec:implementation_find_dirs} de modo a conseguir processar cada
+diretório individualmente. Isto é feito com recurso a um loop
+\bashinline{while read}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null | \
+    while IFS= read -r -d $'\0' path; do
+      ...
+    done
+  \end{minted}
+	\caption{Iteração sobre os diretórios encontrados}
+\end{listing}
+
+Os erros na procura dos diretórios não nos são relevantes, por isso o
+\emph{stderr} (\emph{file descriptor} 2) é redirecionado para o
+\Verb|/dev/null|.
+
+O loop em si começa por atribuir a variavél \bashinline{IFS} o valor nulo, isto
+é necessário para garantir que o \bashinline{read} não separa por espaços o
+resultado nem consome espaços no final do resultado, os diretórios podem
+conte-los e nós queremos preservá-los.
+
+O \bashinline|-r| é necessário caso contrário o \bashinline{read} intrepertaria
+as barras invertidas como \emph{escape sequences} \cite[3191-3193]{posix}, os
+ficheiros podem conter barras invertidas e nós queremos o seu valor literal logo
+precisamos de desativar este processamento.
+
+A opção \bashinline|-d $'\0'| também têm um papel importante, visto que como
+a lista de diretórios se encontra separada por bytes nulos (\Verb|'\0'|) é
+essencial mudar o delimitador do \bashinline{read} (que por omissão é a linha
+nova) para o byte nulo, a string é precedida de um dollar (\Verb|$|) pois esta
+causa com que a \emph{Bash} processe a string com \emph{escape sequences}, caso
+contrário o valor literal de barra invertida seguida de zero seria passado ao
+\bashinline{read}.
+
+De seguida é necessário juntar os comandos para escolher os ficheiros
+(desenvolivdo na secção \ref{sec:implementation_choosing_files}) e calcular
+o tamanho (desenvolivdo na secção \ref{sec:implementation_calculate_size}). O
+resultado do primeiro pode ser redirecionado diretamente para o segundo visto
+que este já foi adaptado para receber a lista de ficheiros separada por bytes
+nulos.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    size=$(find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null | \
+         du -cb --files0-from=- 2>/dev/null | \
+         tail -n1 | cut -f1)
+  \end{minted}
+	\caption{Cálculo do tamanho total de um diretório}
+\end{listing}
+
+Mais uma vez as mensagens de erro são ignoradas, no entanto desta vez os erros
+não são simplesmente ignorados, pois se algum tiver ocorrido (por exemplo,
+devido a falta de permissões) o tamanho é suposto aparecer como \Verb|NA|.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    size=$(find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null | \
+         du -cb --files0-from=- 2>/dev/null | \
+         tail -n1 | cut -f1)
+
+    if [ "$?" -ne 0 ]; then
+      size="NA"
+    fi
+  \end{minted}
+	\caption{Cálculo do tamanho total de um diretório (com deteção de erros)}
+	\label{code:implementation_dir_size_NA}
+\end{listing}
+
+No código \ref{code:implementation_dir_size_NA} o código de retorno é
+verificado e se este não for 0 (ocorreu um erro) o tamanho é substituido por
+\Verb|NA|.
+
+Normalmente a variavél \Verb|$?| apenas contêm o código de erro do último
+comando executado, no entanto nós queremos o código de erro da \emph{pipeline}
+toda, isto poderia ser feito verificando os códigos de erro no array
+\Verb|PIPESTATUS|, no entanto isto requer escrever uma condição para cada
+comando na \emph{pipeline} o que é menos que ideal.
+
+Mas a \emph{Bash} pode ser configurada para devolver o código de erro da
+\emph{pipeline} toda diretamente na variavél \Verb|$?|, isto é feito através da
+opção \Verb|pipefail| \cite{bash_man}, esta pode ser ativada como é apresentado
+no código \ref{code:implementation_pipefail}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    set -o pipefail
+  \end{minted}
+	\cprotect\caption{Ativação da opção \Verb|pipefail|}
+	\label{code:implementation_pipefail}
+\end{listing}
+
+Finalmente, basta apenas juntar estas duas partes que produzimos até agora.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    set -o pipefail
+
+    find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null | \
+    while IFS= read -r -d $'\0' path; do
+      size=$(find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null | \
+           du -cb --files0-from=- 2>/dev/null | \
+           tail -n1 | cut -f1)
+      if [ "$?" -ne 0 ]; then
+        size="NA"
+      fi
+
+      echo -e "$size\t$path"
+    done
+  \end{minted}
+	\cprotect\caption{Implementação do algoritmo principal do \Verb|spacecheck.sh|}
+\end{listing}
 
 \subsection{Processamento de argumentos}\label{sec:implementation_arg_parsing}
 
@@ -403,55 +524,6 @@ A opção \Verb|-h| imprime a seguinte mensagem:
       -l N:        Only show up to N lines
   \end{minted}
 \end{listing}
-
-A opção \Verb|-n| está implementada da seguinte forma:
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    pattern="$OPTARG"
-    FIND_OPTS+=("-regextype" "posix-extended" "-regex" "^.*/$pattern$")
-  \end{minted}
-\end{listing}
-
-Começamos por escolher o tipo de expressão regular que queremos usar, neste caso \Verb|posix-extended|.
-De seguida passamos uma expressão regular que processa tudo depois da última \Verb|'/'| de acordo com o padrão passado pelo utilizador.
-As opções do \Verb|FIND_OPTS| são usadas pelo \Verb|find| falado anteriormente (\ref{sec:implementation_find_opts}).
-
-A opção \Verb|-d| está implementada da seguinte forma:
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-			data="$OPTARG"
-			timestamp="@$(date -d "$data" +%s)"
-			FIND_OPTS+=("-newermt" "$timestamp")
-  \end{minted}
-\end{listing}
-
-A opção \Verb|-newermt| faz com que o \Verb|find| apenas procure por ficheiros com data de modificação mais recente ou igual à data passada. Esta é convertida para unix time através do comando \bashinline{date -d "$data" +%s}, e é assim que é passada ao \Verb|find|.
-
-Quanto à opção \Verb|-s| a forma como é implementada é semelhante às outras:
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    tamanho="$OPTARG"
-    if [[ "${tamanho:0-1}" =~ ^[0-9]+$ ]]; then
-      tamanho+="c"
-    fi
-    if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
-      tamanho="+$tamanho"
-    fi
-    FIND_OPTS+=("-size" "$tamanho")
-  \end{minted}
-\end{listing}
-
-O primeiro \Verb|if| verifica se o último caráter é um número e caso seja adiciona um \Verb|'c'| no fim da string.
-O \Verb|'c'| é para dizer que o tamanho está especificado em bytes.
-
-O segundo \Verb|if| verifica se o primeiro caráter é um número e caso seja adiciona um \Verb|'+'| no inicio da string.
-O \Verb|'+'| é para especificar o tamanho dos ficheiros tem de ser maior do que o tamanho passado.
 
 A opção \Verb|-r| está implementada de uma forma diferente sendo que no processamento dos argumentos apenas faz \bashinline{REVERSE_SORT=true}
 
