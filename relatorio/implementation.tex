@@ -377,7 +377,7 @@ A versão do código \ref{code:implementation_final_size_calcultate} é a que fo
 implementada no programa final, esta produz o total do conteúdo dos ficheiros em
 bytes.
 
-\subsection{Integração final}
+\subsection{Integração final}\label{sec:implementation_spacecheck_integration}
 
 Agora que já foram resolvidos todos os problemas individualmente resta apenas
 integrá-los todos de maneira a conseguir produzir a lista de tamanho ocupado por
@@ -503,7 +503,215 @@ Finalmente, basta apenas juntar estas duas partes que produzimos até agora.
 	\cprotect\caption{Implementação do algoritmo principal do \Verb|spacecheck.sh|}
 \end{listing}
 
-\subsection{Processamento de argumentos}\label{sec:implementation_arg_parsing}
+\cprotect\section{\Verb|spacerate.sh|}
+
+O script \Verb|spacerate.sh| após fornecido dois ficheiros com resultados da
+execução do \Verb|spacecheck.sh| calcula a diferença, indicando também se os
+diretórios foram criados ou removidos de uma execução para a outra.
+
+A implementação pode então ser dividida duas partes:
+
+\begin{enumerate}
+	\item Extrair os diretórios
+	\item Comparar os diretórios
+\end{enumerate}
+
+\subsection{Extrair os diretórios}
+
+O primeiro e principal passo para começar a comparar os diretórios é descobrir
+que diretórios existem e colocá-los numa estrutura de dados que seja fácil de
+manipular. Para isso começamos por declarar dois dicionários, um para cada
+ficheiro, estes vão conter um mapeamento do diretório para o seu tamanho.
+Além destes dois, um terceiro dicionário será criado que será usado para
+contabilizar todos os diretórios encontrados a partir dos dois ficheiros,
+sem repetições.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    declare -A SPACECHECK_NEW
+    declare -A SPACECHECK_OLD
+
+    declare -A DIRECTORIES
+  \end{minted}
+	\cprotect\caption{Declaração dos dicionários usados no \Verb|spacerate.sh|}
+\end{listing}
+
+Para facilitar a leitura do código, o caminho para o primeiro ficheiro será
+guardado na variável \Verb|NEWFILE| e o do segundo na variável
+\Verb|OLDFILE|.
+
+Os ficheiros vão ter de ser iterados linha a linha para poderem ser extraídos os
+dados necessários para popular os dicionários. Para este fim foi utilizada um
+loop \bashinline{while read} como é apresentad no código
+\ref{code:implementation_file_loop}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    while IFS= read -r -d $'\n' line; do
+      ...
+    done < <(tail -n +2 -- "$NEWFILE")
+  \end{minted}
+	\cprotect\caption{Iteração sobre o ficheiro do \Verb|spacecheck.sh|}
+	\label{code:implementation_file_loop}
+\end{listing}
+
+Este loop é estruturado de uma maneira semelhante ao que foi utilizado na secção
+\ref{sec:implementation_spacecheck_integration}, mas invés de bytes nulos o
+delimitador escolhido é o caráter de linha nova.
+
+É de notar ainda que este loop utiliza \emph{Process Substitution}
+\cite{bash_man}, invês de uma \emph{pipe} como é normal. Isto é necessário pois
+um loop \bashinline{while} precedido por uma \emph{pipe} vai ser executado numa
+\emph{shell} nova e não terá acesso as variavéis enquanto que o redirecionamento
+do resultado do \emph{Process Substitution} será executado na mesma
+\emph{shell}.
+
+O \bashinline{tail -n +2} é utilizado para ignorar a primeira linha do ficheiro,
+que contém o cabeçalho.
+
+Este loop vai ser feito não só para o \Verb|NEWFILE| mas também para
+\Verb|OLDFILE|.
+
+Dentro de cada um destes loops, cada linha é processada do seguinte modo:
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+      size=$(echo "$line" | cut -f1)
+      name=$(echo "$line" | cut -f2-)
+      SPACECHECK_NEW["$name"]="$size"
+      DIRECTORIES["$name"]=1
+  \end{minted}
+	\cprotect\caption{Processamento de uma linha do resutlado do \Verb|spacecheck.sh|}
+\end{listing}
+
+O \bashinline{cut -f1} é utilizado para obter a primeira coluna e o
+\bashinline{cut -f2-} para obter a segunda coluna e todas as que se apresentam a
+seguir a ela (apesar do resultado do \Verb|spacecheck.sh| ser projetado apenas
+com duas colunas, devido ao facto que o nome dos diretórios podem conter
+espaços, outras \enquote{colunas} podem ser formadas).
+
+Após isso é adicionado ao dicionário \Verb|SPACECHECK_NEW| o nome do ficheiro
+como chave e o tamanho como valor. No loop dedicado ao ficheiro
+\Verb|OLDFILE| o dicionário atualizado é o \Verb|SPACECHECK_OLD|.
+
+Ao mesmo tempo também adicionamos ao dicionário \Verb|DIRECTORIES| o nome do
+ficheiro como chave e o valor 1, que como é um dicionário não repete as chaves,
+logo vamos obter um conjunto com todos os diretórios dos dois ficheiros.
+
+\subsection{Comparar os diretórios}
+
+Agora que já temos os dados guardados em dicionários podemos começar a comparar
+os dois ficheiros. Como tal vamos começar por iterar sobre os diretórios.
+
+Como foi referido na secção anterior, todos os diretórios que foram encontrados
+em ambos os ficheiros foram guardados no dicionário \Verb|DIRECTORIES|, logo
+basta iterar sobre as chaves do dicionário, isto é alcançado ao prefixar o
+dicionário com um ponto de exclamação (\Verb|!|) como é demonstrado no código
+\ref{code:implementation_dirs_loop}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    for key in "${!DIRECTORIES[@]}"; do
+      # ...
+    done
+  \end{minted}
+	\caption{Iteração sobre os diretórios encontrados}
+	\label{code:implementation_dirs_loop}
+\end{listing}
+
+De seguida, o tamanho do diretório é consultado nos dicionários que foram criados
+e populados na secção anteior, de modo a simplificar o código estes valores são
+guardados em variavéis.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+      old_size="${SPACECHECK_OLD[$key]}"
+      new_size="${SPACECHECK_NEW[$key]}"
+  \end{minted}
+	\caption{Consulta do tamanho do diretório em ambas as versões}
+\end{listing}
+
+Agora é necessário verificar os casos em que o diretório está apenas presente
+num dos ficheiros. Para tal começamos por verificar se o \Verb|old_size| está
+vazio, isto indicará que o diretório não existe no ficheiro antigo mas existe
+no novo, logo a diferença não precisa de ser calculada e o ficheiro é marcado
+como \Verb|NEW| no fim da linha.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+      if [ -z "$old_size" ]; then
+        echo -e "$new_size\t$key\tNEW"
+      ...
+  \end{minted}
+	\caption{Caso em que o diretório não existe no ficheiro antigo}
+\end{listing}
+
+Caso o \Verb|new_size| esteja vazio o diretório não existe no ficheiro novo,
+mas existe no antigo, logo não precisamos de calcular a diferença, sendo apenas
+adicionado um \Verb|-| no tamanho para denotar que este foi removido, além disso
+é adicionado ao fim da linha a string \Verb|REMOVED|.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    ...
+    elif [ -z "$new_size" ]; then
+      if [ "$old_size" == "0" ] || [ "$old_size" == "NA" ]; then
+        display_size="$old_size"
+      else
+        display_size="-$old_size"
+      fi
+
+      echo -e "$display_size\t$key\tREMOVED"
+    ...
+  \end{minted}
+	\caption{Caso em que o diretório não existe no ficheiro novo}
+	\label{code:implementation_new_size_empty}
+\end{listing}
+
+É de notar que o código \ref{code:implementation_new_size_empty} é um pouco mais
+complexo porque lida com dois casos extra para produzir resultados melhores para
+o utilizador. Estes são quando o tamanho no ficheiro velho é \Verb|0| ou
+\Verb|NA|, nestas situações não faz sentido adicionar o prefixo \Verb|-| ao
+tamanho.
+
+Se o tamanho existir em ambos os ficheiros existe mais um caso especial que
+precisa de ser verificado, este é se alguns dos tamanhos é \Verb|NA|, nestes
+casos a diferença não é calculada e o \Verb|NA| é propagado.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    ...
+    elif [ "$old_size" == "NA" ] || [ "$new_size" == "NA" ]; then
+      echo -e "NA\t$key"
+    ...
+  \end{minted}
+	\caption{Propagação do NA}
+\end{listing}
+
+Por fim, se os dois tamanhos existirem e não forem \Verb|NA| então calculamos a
+diferença do diretório nos dois ficheiros e resultado é impresso.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    else
+      diff=$((new_size - old_size))
+      echo -e "$diff\t$key"
+    fi
+    ...
+  \end{minted}
+	\caption{Cálculo da diferença entre os dois ficheiros}
+\end{listing}
+
+\section{Processamento de argumentos}\label{sec:implementation_arg_parsing}
 
 Para o processamento dos argumentos usamos o comando \bashinline{getopts} com o padrão \bashinline{":hran:d:s:l:"}.
 
@@ -591,137 +799,6 @@ Como já temos o array \Verb|HEAD_OPTS| basta passar o output ordenado ao seguin
 
 Se o número de opções for menor que 1 então imprime tudo, caso contrário imprime apenas as primeiras linhas.
 
-\section{Spacerate}
-
-\subsection{Extrair os dados para dicionários}
-
-O primeiro e principal passo para começar a comparar os diretórios é colocá-los numa estrutura de dados que seja fácil de manipular.
-Para isso começamos por declarar dois dicionários, um para cada ficheiro, mas também será criado um terceiro dicionário que será usado para obter todos os diretórios dos dois ficheiros, sem repetições.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    declare -A SPACECHECK_NEWEST
-    declare -A SPACECHECK_OLDEST
-
-    declare -A DIRECTORIES
-  \end{minted}
-\end{listing}
-
-Para facilitar a leitura do código chamamos ao primeiro ficheiro \Verb|NEWESTFILE| e ao segundo \Verb|OLDESTFILE|.
-
-Após isso são feitos dois \bashinline{while read} um para cada ficheiro passado como argumento ao script.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    while IFS=$'\n' read -r line; do
-      # ...
-    done < <(tail -n +2 -- "$NEWESTFILE")
-  \end{minted}
-\end{listing}
-
-O mesmo faz-se para o \Verb|OLDESTFILE|.
-
-O \bashinline{tail -n +2} serve para ignorar a primeira linha do ficheiro, que contém o header.
-DOUBLE CHECK THIS
-O \bashinline|IFS=$'\n'| serve para separar as linhas por \Verb|'\n'| e não por espaços.
-
-Dentro do loop é feito o parsing de cada linha do ficheiro da seguinte maneira:
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-      size=$(echo "$line" | cut -f1)
-      name=$(echo "$line" | cut -f2-)
-      SPACECHECK_NEWEST["$name"]="$size"
-      DIRECTORIES["$name"]=1
-  \end{minted}
-\end{listing}
-
-Como as colunas estão separadas por \Verb|'\t'| usamos o \bashinline{cut -f1} para obter a primeira coluna e o \bashinline{cut -f2-} para obter todas as outras.
-Após isso é adicionado ao dicionário \Verb|SPACECHECK_NEWEST| o nome do ficheiro como chave e o tamanho como valor.
-Ao mesmo tempo também adicionamos ao dicionário \Verb|DIRECTORIES| o nome do ficheiro como chave e o valor 1, que como é um dicionário não repete as chaves, logo vamos obter uma lista com todos os diretórios dos dois ficheiros.
-
-\subsection{Obter as diferenças entre cada ficheiro}
-
-Agora que já temos os dados guardados em dicionários podemos começar a comparar os dois ficheiros.
-Para isso começamos por iterar sobre os diretórios.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    for key in "${!DIRECTORIES[@]}"; do
-      # ...
-    done
-  \end{minted}
-\end{listing}
-
-Para simplificar o código guardamos os tamanhos dos diretórios em variáveis.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-      old_size="${SPACECHECK_OLDEST[$key]}"
-      new_size="${SPACECHECK_NEWEST[$key]}"
-  \end{minted}
-\end{listing}
-
-Caso o \Verb|old_size| seja vazio significa que o diretório não existe no ficheiro antigo mas existe no novo, logo não precisamos de calcular a diferença e baste adicionar \Verb|NEW| no fim.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-      if [ -z "$old_size" ]; then
-        echo -e "$new_size\t$key\tNEW"
-      ...
-  \end{minted}
-\end{listing}
-
-Caso o \Verb|new_size| seja vazio significa que o diretório não existe no ficheiro novo mas existe no antigo, logo não precisamos de calcular a diferença e baste adicionar \Verb|REMOVED| no fim e fazer o inverso do tamanho, ou seja, adicionar um \Verb|'-'| no inicio do size.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    ...
-    elif [ -z "$new_size" ]; then
-      if [ "$old_size" == "0" ] || [ "$old_size" == "NA" ]; then
-        display_size="$old_size"
-      else
-        display_size="-$old_size"
-      fi
-
-      echo -e "$display_size\t$key\tREMOVED"
-    ...
-  \end{minted}
-\end{listing}
-
-Aqui para não imprimir \Verb|"-0"| ou \Verb|"-NA"| nos casos em que o \Verb|old_size| é \Verb|0| ou \Verb|NA| criamos uma variável \Verb|display_size| que vai ser usada para imprimir o tamanho.
-
-Caso algum dos dois tamanhos seja \Verb|NA| o resultado impresso será \Verb|NA|.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    ...
-    elif [ "$old_size" == "NA" ] || [ "$new_size" == "NA" ]; then
-      echo -e "NA\t$key"
-    ...
-  \end{minted}
-\end{listing}
-
-Por fim, se os dois tamanhos existirem e não forem \Verb|NA| então calculamos a diferença entre eles e imprimimos o resultado.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    else
-      diff=$((new_size - old_size))
-      echo -e "$diff\t$key"
-    fi
-    ...
-  \end{minted}
-\end{listing}
 
 \subsection{Processamento de argumentos}
 
