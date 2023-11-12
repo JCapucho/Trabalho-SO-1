@@ -160,6 +160,12 @@ name_spaces_sort() {
 	create_test_file "common c/file" 3
 }
 
+tabs_everywhere() {
+	create_test_file $'\tbeginning/file' 1
+	create_test_file $'mid\tdle/file' 2
+	create_test_file $'end\t/file' 3
+}
+
 declare -A TESTS
 TESTS["empty_root"]=":" # The `:` function does nothing (ie. nop)
 TESTS["quoting_test"]="quoting_test"
@@ -181,6 +187,7 @@ TESTS["unknown_option"]="unknown_option"
 TESTS["multiple_dirs"]="multiple_dirs"
 TESTS["different_time"]="different_time"
 TESTS["name_spaces_sort"]="name_spaces_sort"
+TESTS["tabs_everywhere"]="tabs_everywhere"
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 TESTS_DIR="$SCRIPT_DIR/spacecheck-tests"
