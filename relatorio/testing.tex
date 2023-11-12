@@ -2,10 +2,10 @@
 
 \section{Metodologia}\label{sec:testing_metodology}
 
-Durante o desenvolvimento dos programas em questão estes começaram por ser
+Durante o desenvolvimento dos scripts em questão estes começaram por ser
 testados manualmente, no caso do \Verb|spacecheck.sh| este era testado com alguns
 ficheiros e diretórios criados a mão para simular diferentes casos relevantes ao
-funcionamento do programa. O \Verb|spacerate.sh| utilizava os ficheiros produzidos
+funcionamento do script. O \Verb|spacerate.sh| utilizava os ficheiros produzidos
 por estes testes com algumas ligeiras modificações feitas à mão, para simular casos
 mais extremos.
 
@@ -42,7 +42,7 @@ Como tal desenvolvemos um processo automático de testagem que se baseia no
 padrão de \textbf{Golden Testing}\cite{goldenTestsAreTasty}.
 Este consiste em correr um teste com entradas
 definidas e constantes para o mesmo teste (no nosso caso estas entradas são os
-ficheiros e diretórios) e comparar o resultado com um resultado prévio que se
+ficheiros e diretórios) e comparar o resultado com outro resultado prévio que se
 sabe estar correto.
 
 Esta abordagem é comum no desenvolvimento de \emph{User Interfaces}
@@ -96,7 +96,7 @@ e \Verb|test_end|, estas funções serão usadas pelo arnês de testes e vão co
 antes e depois de cada teste respetivamente. No \Verb|test_start| é suposto
 definir código comum a todos os testes, como por exemplo, apagar ficheiros
 antigos e criar o diretório do teste. O \Verb|test_end|, além de código definido
-pelo desenvolvedor, têm de executar o programa sobre teste e fazer o \emph{diff}
+pelo desenvolvedor, têm de executar o script sobre teste e fazer o \emph{diff}
 com os ficheiros de referência.
 
 Finalmente o script de testagem carregá o ficheiro \Verb|test_harness.sh|. Este
@@ -120,7 +120,7 @@ na linha de comando, como é apresentado no código \ref{code:test_harness_filte
 
 Esta facilidade foi implementada para possibilitar um ciclo de desenvolvimento
 mais rápido quando o desenvolvedor está interessado num conjunto restrito de
-testes, seja porque está a consertar o programa ou porque está a escrever mais
+testes, seja porque está a consertar o script ou porque está a escrever mais
 testes.
 
 Finalmente, o arnês vai executar todos os testes especificados (se nenhum foi
@@ -130,7 +130,7 @@ especificado, todos os testes definidos no mapa de testes serão executados).
 
 Cada teste do \Verb|spacecheck.sh| começa por limpar
 qualquer vestígios de execuções anteriores, de seguida o diretório do teste
-é criada, isto tudo acontece no \Verb|test_start|.
+é criado, isto tudo acontece no \Verb|test_start|.
 
 De seguida cada teste cria vários ficheiros e diretórios de acordo com o
 comportamento que se pretende testar, o código \ref{code:test_definition} mostra
@@ -172,17 +172,17 @@ A função faz uso do comando \bashinline|dirname| para obter o caminho sem o no
 do ficheiro, ou seja, apenas com os diretórios, de seguida passa este valor ao
 \bashinline|mkdir| que os vai criar, aqui é utilizada a opção \Verb|-p| para
 criar os diretórios recursivamente e para o \bashinline|mkdir| não falhar se
-estas já existirem.
+estes já existirem.
 
 Em ambos estes comandos foi necessário utilizar \Verb|--| antes do caminho, isto
-acontece porque é perfeitamente válido o caminho começar por um traço
+acontece porque é perfeitamente válido o caminho começar por um hífen
 (\Verb|-|), que normalmente denota opções, isto foi explicado em maior detalhe
 na secção \ref{sec:implementation_find_dirs}.
 
-O ficheiro em si é criado através do programa \bashinline|dd|, este é utilizado
+O ficheiro em si é criado através do comando \bashinline|dd|, este é utilizado
 porque permite o controlo preciso do tamanho do ficheiro, para isto é utilizado
 o ficheiro especial \Verb|/dev/zero| (um ficheiro sem fim que retorna sempre 0),
-de onde vai ser lido um bloco (\Verb|count=1|) de \Verb|$size| bytes
+de onde vai ser lido um bloco (\Verb|count=1|) de \Verb|size| bytes
 (\Verb|bs=$size|) que será copiado para o novo ficheiro.
 
 \subsubsection{Problemas com variavéis externas}
@@ -198,10 +198,10 @@ executado em dias diferentes irá apresentar resultados diferentes causando com
 que o teste falhe.
 
 Logo para obter determinismo na execução dos testes é necessário executar o
-programa sempre com um tempo pré-definido, para tal foi utilizado o programa
+script sempre com um tempo pré-definido, para tal foi utilizado o programa
 \Verb|faketime| do projeto \Verb|libfaketime|
 \footnote{\url{https://github.com/wolfcw/libfaketime}},
-este permite mudar o tempo reportado a um programa sem ter de mudar o relógio
+este permite mudar o tempo reportado a um processo sem ter de mudar o relógio
 do sistema, sendo assim ideal para o nosso objetivo de uma ferramenta de fácil
 utilização para testagem.
 
@@ -227,12 +227,12 @@ Além disso o \Verb|spacerate.sh| ainda difere em mais um aspeto, o teste não �
 executado apenas uma vez, mas sim \textbf{duas} vezes, a segunda vez com a ordem
 dos ficheiros trocada. Como a troca da ordem dos ficheiros deve produzir um
 resultado simétrico, a testagem nas duas direções é uma maneira simples de
-verificar essa propriedade no programa.
+verificar esta propriedade no script.
 
 \section{Resultados}
 
-A implementação de um processo de testagem automática descrito na secção
-anterior, permitiu-nos satisfazer os objetivos que delineamos na secção
+A implementação do processo de testagem automática descrito nas secções
+anteriores, permitiu-nos satisfazer os objetivos que delineamos na secção
 \ref{sec:testing_metodology}, os testes são todos executados automaticamente
 (com a opção de opcionalmente restringir os testes a executar), eles correm em
 ambientes que são criados de raiz em cada execução e são declarados num ficheiro
@@ -243,9 +243,9 @@ em todo o processo ter sido cortado significativamente, este agora só necessita
 de começar o processo de testagem, verificar os ficheiros de referência
 inicialmente e corrigir erros que sejam capturados pela testagem.
 
-Isto traduz-se numa redução do tempo de testagem para \textbf{um teste} de
-\numrange{10}{30} segundos em média, para $< 2$ segundos para
-\textbf{todos os testes!}
+Isto traduz-se numa redução do tempo de testagem, que antes para
+\textbf{um teste} era de \numrange{10}{30} segundos em média, para
+$< 2$ segundos para \textbf{todos os testes!}
 
 Além da redução do tempo necessário para a testagem, o novo processo foi logo
 após a sua implementação capaz de capturar um erro que tinha sido introduzido

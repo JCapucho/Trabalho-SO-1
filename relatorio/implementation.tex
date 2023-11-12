@@ -119,9 +119,9 @@ subdiretórios apresentada no código \ref{code:implementation_second_subdir_fin
 \end{listing}
 
 No entanto esta versão ainda tem um problema, como já vimos os diretórios podem
-ter nomes pouco convencionais e se o nome começar com um híphen (\Verb|-|),
+ter nomes pouco convencionais e se o nome começar com um hífen (\Verb|-|),
 estes vão ser interpretados pelo \Verb|find| como opções. Para resolver isto
-vamos ter de escapar manualmente todos os diretórios que começam com um híphen
+vamos ter de escapar manualmente todos os diretórios que começam com um hífen
 adicionando \bashinline|./| antes do nome do diretório
 \footnote{Mais a frente o mesmo problema terá de ser resolvido noutros comandos,
 	estes ou aceitam um argumento especial \Verb|--| que sinaliza o fim das opções,
@@ -153,12 +153,12 @@ adicionando \bashinline|./| antes do nome do diretório
       esac
     done
   \end{minted}
-	\caption{Implementação do escape de diretórios começadas por híphen}
+	\caption{Implementação do escape de diretórios começados por hífen}
 	\label{code:implementation_escape_options_find}
 \end{listing}
 
 O código \ref{code:implementation_escape_options_find}, mostra a implementação
-final para escapar os híphens no início do nome dos diretórios. Este código
+final para escapar os hifens no início do nome dos diretórios. Este código
 ainda implementa mensagens de erro para diretórios que não existem e mensagens
 de ajuda casos esses diretórios pareçam ser opções.
 
