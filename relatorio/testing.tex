@@ -31,7 +31,7 @@ objetivos:
 	se lembrar de cada um deles individualmente.
 	\item[Declarativo]
 	todos os testes são configurados uma vez e sempre que os testes são
-	executados os diretórios e ficheiros necessários são criados de raíz
+	executados os diretórios e ficheiros necessários são criados de raiz
 	para garantir que os testes são facilmente reproduzidos.
 	\item[Transparentes]
 	não é necessário a intervenção do desenvolvedor para verificar o resultado
@@ -69,9 +69,9 @@ apresentado na figura \ref{fig:testing_diagram}.
 
 \newpage
 
-O script de testagem começa por definir funções que possam ser utéis a testagem
+O script de testagem começa por definir funções que possam ser uteis a testagem
 e de seguida define o mapa de testes. O mapa de testes é um array associativo
-onde os indíces são o nome dos testes e os valores são funções usadas para
+onde os índices são o nome dos testes e os valores são funções usadas para
 configurar o teste (ou \Verb|:| que em \emph{Bash} é a função vazia).
 
 
@@ -96,12 +96,12 @@ e \Verb|test_end|, estas funções serão usadas pelo arnês de testes e vão co
 antes e depois de cada teste respetivamente. No \Verb|test_start| é suposto
 definir código comum a todos os testes, como por exemplo, apagar ficheiros antigos
 e criar o diretório do teste. O \Verb|test_end|, além de código definido pelo
-desenvolvedor, têm de executar o pograma sobre teste e fazer o \emph{diff} com
+desenvolvedor, têm de executar o programa sobre teste e fazer o \emph{diff} com
 os ficheiros de referência.
 
 Finalmente o script de testagem carregá o ficheiro \Verb|test_harness.sh|. Este
 ficheiro é o arnês de testagem, ou seja inclui rotinas de como fazer o
-\emph{diff} com o ficheiro de referência e incluí o codígo que irá processar
+\emph{diff} com o ficheiro de referência e incluí o código que irá processar
 os argumentos passados pelo utilizador e executar os testes.
 
 O arnês foi desenhado para aceitar os nomes dos testes a correr como argumentos
@@ -129,7 +129,7 @@ especificado, todos os testes definidos no mapa de testes serão executados).
 \cprotect\subsection{\Verb|spacecheck.sh|}
 
 Cada teste do \Verb|spacecheck.sh| começa por limpar
-qualquer vestígios de execuções anteriores, de seguida a diretoria do teste
+qualquer vestígios de execuções anteriores, de seguida o diretório do teste
 é criada, isto tudo acontece no \Verb|test_start|.
 
 De seguida cada teste cria vários ficheiros e diretórios de acordo com o
@@ -150,7 +150,7 @@ um exemplo de um dos testes definidos.
 \end{listing}
 
 A função \Verb|create_test_file| é uma função auxiliar que cria um ficheiro num
-dado caminho (e as diretorias onde ele reside) com um tamanho definido, a função
+dado caminho (e os diretórios onde ele reside) com um tamanho definido, a função
 é apresentada na listagem de código \ref{code:create_test_file}.
 
 \begin{listing}[H]
@@ -168,29 +168,28 @@ dado caminho (e as diretorias onde ele reside) com um tamanho definido, a funç�
 	\label{code:create_test_file}
 \end{listing}
 
-% TODO: Decide on diretoria ou dirtório
 A função faz uso do comando \Verb|dirname| para obter o caminho sem o nome do
 ficheiro, ou seja, apenas com os diretórios, de seguida passa este valor ao
-\Verb|mkdir| que os vai criar, aqui é utilizada a opção \Verb|-p| para criar as
-diretorias recursivamente e para o \Verb|mkdir| não falhar se estas já existirem.
+\Verb|mkdir| que os vai criar, aqui é utilizada a opção \Verb|-p| para criar os
+diretórios recursivamente e para o \Verb|mkdir| não falhar se estas já existirem.
 
-% TODO: Add link to how spacecheck had to solve this
 Em ambos estes comandos foi necessário utilizar \Verb|--| antes do caminho, isto
 acontece porque é perfeitamente válido o caminho começar por um traço
-(\Verb|-|), que normalmente denota opções.
+(\Verb|-|), que normalmente denota opções, isto foi explicado em maior detalhe
+na secção \ref{sec:implementation_find_dirs}.
 
 O ficheiro em si é criado através do programa \Verb|dd|, este é utilizado porque
 permite o controlo preciso do tamanho do ficheiro, para isto é utilizado o
 ficheiro especial \Verb|/dev/zero| (um ficheiro sem fim que retorna sempre 0),
 de onde vai ser lido um bloco (\Verb|count=1|) de \Verb|$size| bytes
-	(\Verb|bs=$size|) que será copiado para o novo ficheiro.
+(\Verb|bs=$size|) que será copiado para o novo ficheiro.
 
 \subsubsection{Problemas com variavéis externas}
 
 Este tipo de testagem assume que o resultado da execução é \emph{determinista},
 ou seja, para conjuntos de entradas iguais o resultado será igual, no entanto
 o \Verb|spacecheck.sh| não pode ser considerado determinista pois este depende
-de uma variavél externa, o tempo.
+de uma variável externa, o tempo.
 
 O resultado de \Verb|spacecheck.sh| inclui sempre uma data \Verb|YYYYMMDD| de
 quando este foi executado, isto é um problema porque o mesmo teste quando
@@ -219,9 +218,9 @@ utilização para testagem.
 \cprotect\subsection{\Verb|spacerate.sh|}
 
 O \Verb|spacerate.sh| é testado de uma maneira semelhante ao
-\Verb|spacecheck.sh|, no entanto agora invês de serem criados os ficheiros e
-diretorias para cada teste, os ficheiros para comparar já existem e foram
-desenhadas especialmente para manifestar comportamentos especificos no script.
+\Verb|spacecheck.sh|, no entanto agora invés de serem criados os ficheiros e
+diretórios para cada teste, os ficheiros para comparar já existem e foram
+desenhadas especialmente para manifestar comportamentos específicos no script.
 
 Além disso o \Verb|spacerate.sh| ainda difere em mais um aspeto, o teste não é
 executado apenas uma vez, mas sim \textbf{duas} vezes, a segunda vez com a ordem
@@ -253,7 +252,7 @@ anteriormente aquando de mudanças de como os ficheiros eram filtrados no
 \Verb|spacecheck.sh|. O erro
 causava com que o filtro de data de modificação não tivesse qualquer efeito,
 este em particular é um dos casos mais difíceis de testar devido ao números de
-passos necessários para configurar uma diretoria com datas especificas manualmente.
+passos necessários para configurar um diretório com datas especificas manualmente.
 
 Concluindo, o novo processo de testagem é mais eficiente e eficaz em garantir
 a qualidade do trabalho criado, consideramos assim que o tempo gasto na sua

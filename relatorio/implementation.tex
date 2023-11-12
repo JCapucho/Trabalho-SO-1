@@ -3,7 +3,7 @@
 \section{Introdução}
 
 Neste trabalho foi nos pedido que críassemos dois scripts \emph{Bash}:
-\Verb|spacecheck.sh| e \Verb|spacerate.sh|, cada um destes desempharia uma
+\Verb|spacecheck.sh| e \Verb|spacerate.sh|, cada um destes desempenharia uma
 função diferente mas complementares.
 
 O script \Verb|spacecheck.sh| é responsável por produzir um relatório que
@@ -22,7 +22,7 @@ construir desta maneira.
 
 Os scripts possuem uma parte semelhante aos dois significativa (por exemplo, o
 processamento de argumentos e o ordenamento de resultados) como tal iremos
-começar por discutir as partes específicas a cada programa e de seguida
+começar por discutir as partes específicas a cada script e de seguida
 abordaremos as partes comuns.
 
 \cprotect\section{\Verb|spacecheck.sh|}
@@ -102,7 +102,7 @@ subdiretório, obtemos o seguinte resultado.
 \end{listing}
 
 Apesar disto ser uma situação rara é uma possibilidade e como tal temos de a
-acautelar no nosso programa, mas já vimos que o caminho não pode conter bytes
+acautelar no nosso script, mas já vimos que o caminho não pode conter bytes
 nulos e o \Verb|find| contêm uma opção \Verb|-print0| que invês de separar os
 resultados com uma linha nova, vai separar com o byte nulo \cite{find_man}.
 
@@ -125,8 +125,8 @@ vamos ter de escapar manualmente todos os diretórios que começam com um híphe
 \footnote{Mais a frente o mesmo problema terá de ser resolvido noutros comandos,
 	estes ou aceitam um argumento especial \Verb|--| que sinaliza o fim das opções,
 	ou têm uma opção \Verb|-files0-from|. O primeiro não existe no \Verb|find|
-	devido a ordem pouco convencional dos argumentos, o segundo existe em algumas
-	versões do \Verb|find| mas é pouco comum, principalmente em distribuições que
+	devido à ordem pouco convencional dos argumentos, o segundo existe em algumas
+	versões do \Verb|find|, mas é pouco comum, principalmente em distribuições que
 	não são baseadas nas ferramentas GNU. Logo decidimos pela opção manual.}.
 
 \begin{listing}[H]
@@ -152,7 +152,7 @@ vamos ter de escapar manualmente todos os diretórios que começam com um híphe
       esac
     done
   \end{minted}
-	\caption{Implementação do escape de diretorias começadas por híphen}
+	\caption{Implementação do escape de diretórios começadas por híphen}
 	\label{code:implementation_escape_options_find}
 \end{listing}
 
@@ -215,7 +215,7 @@ falado em maior detalhe na secção de processamento de argumentos.
 
 \subsubsection{Filtragem do nome de ficheiro}
 
-Vamos começar por explorar como o programa lida com a filtragem do nome de
+Vamos começar por explorar como o script lida com a filtragem do nome de
 ficheiro utilizando \emph{regex}.
 
 \begin{listing}[H]
@@ -231,17 +231,17 @@ Começamos por escolher o tipo de expressão regular que queremos usar, neste
 caso \Verb|posix-extended|, isto é feito por uma questão de usabilidade pois o
 tipo de \emph{regex} por defeito é o \Verb|findutils-default| que utiliza uma
 sintaxe muito pouco convencional e não têm alguns dos operadores comuns
-\cite{find_man} como a estrela (\Verb|*|) que espera zero ou mais ocurrências
+\cite{find_man} como a estrela (\Verb|*|) que espera zero ou mais ocorrências
 da expressão.
 
 De seguida é passada a expressão regular, no entanto esta não pode ser passada
 diretamente e precisa de algum código extra a sua volta. Isto é necessário pois
 a opção \Verb|-regex| não aplica o \emph{regex} ao nome do ficheiro mas sim ao
-caminho todo. Como tal começamos por ancorar o \emph{regex} ao ínicio do caminho
+caminho todo. Como tal começamos por ancorar o \emph{regex} ao início do caminho
 (\Verb|^|) e consumimos todos os caracteres (\Verb|.*|) até a última barra
 \footnote{O \emph{regex} consome até a última barra porque é \emph{greedy}, ou
-	seja este não pára na primeira barra que encontrar mas vai sim tentar consumir
-	o máximo possível desde que respeite o padrão.}
+	seja, este não vai parar na primeira barra que encontrar, mas vai continuar a
+	tentar consumir o máximo possível desde que respeite o padrão.}
 , a este ponto o \emph{regex} está no início do nome do ficheiro por isso
 aplicamos o \emph{regex} do utilizador, finalmente ancoramos o \emph{regex} ao
 fim (\Verb|$|) isto garante que o nome do ficheiro passa totalmente no
@@ -268,7 +268,7 @@ A opção \Verb|-newermt| faz com que o \Verb|find| apenas procure por ficheiros
 com data de modificação mais recente à data passada, nós queremos o contrário por
 isso utilizamos a opção \Verb|!| que inverte o filtro que aparece a sua direita.
 
-As datas são processadas do mesmo modo que são processadas pelo programa
+As datas são processadas do mesmo modo que são processadas pelo script
 \Verb|date| \cite{find_man}, logo não é necessário qualquer passo extra para
 converter da descrição textual passada pelo utilizador para tempo máquina.
 
@@ -298,7 +298,7 @@ respetivamente.
 
 O primeiro \Verb|if| verifica se o último caráter é um número e caso seja
 adiciona um sufixo \Verb|c| ao tamanho, isto serve para o \Verb|find|
-intrepertar o tamanho em bytes em vez de blocos, como é feito por omissão pelo
+interpretar o tamanho em bytes em vez de blocos, como é feito por omissão pelo
 \Verb|find|. Este sufixo condicional permite ao utilizador escolher outra
 unidade se desejar, bastando adicionar o sufixo correto.
 
@@ -326,9 +326,9 @@ diretório, falta-nos apenas calcular o tamanho de todos ficheiros.
 Para este fim vamos utilizar o comando \bashinline{du} que permite calcular o
 espaço ocupado de uma lista de ficheiros.
 
-A nossa lista de ficheiros vêm separada por bytes nulos, logo invês de passar os
+A nossa lista de ficheiros vêm separada por bytes nulos, logo invés de passar os
 ficheiros diretamente, vamos ter de utilzar a opção \Verb|--files0-from|, esta
-causa com que o \bashinline{du}, invês de ler a lista de ficheiros do
+causa com que o \bashinline{du}, invés de ler a lista de ficheiros do
 \emph{stdin} separada por linhas novas, vá ler a lista de ficheiros separada por
 bytes nulos do ficheiro passado como valor da opção \cite{du_man}, nós utilizamos
 o valor especial \Verb|-| que sinaliza que o ficheiro p \emph{stdin}, desta
@@ -336,7 +336,7 @@ maneira conseguimos ler do \emph{stdin} separado por bytes nulos.
 
 O comando \bashinline{du} por defeito mostra o espaço ocupado por cada ficheiro
 mas não um total, no entanto, se passarmos a opção \Verb|-c| este irá imprimir
-na última linha um total correspodente a soma do tamanho de todos os ficheiros
+na última linha um total correspondente a soma do tamanho de todos os ficheiros
 \cite{du_man}.
 
 A primeira versão do comando que foi utilizado é apresentada no código
@@ -374,7 +374,7 @@ conteúdo invés dos blocos ocupados pelo ficheiro \cite{du_man}.
 \end{listing}
 
 A versão do código \ref{code:implementation_final_size_calcultate} é a que foi
-implementada no programa final, esta produz o total do conteúdo dos ficheiros em
+implementada no script final, esta produz o total do conteúdo dos ficheiros em
 bytes.
 
 \subsection{Integração final}\label{sec:implementation_spacecheck_integration}
@@ -383,7 +383,7 @@ Agora que já foram resolvidos todos os problemas individualmente resta apenas
 integrá-los todos de maneira a conseguir produzir a lista de tamanho ocupado por
 diretório.
 
-O primeiro passo é integrar o código para encontrar diretórios desnvolvido na
+O primeiro passo é integrar o código para encontrar diretórios desenvolvido na
 secção \ref{sec:implementation_find_dirs} de modo a conseguir processar cada
 diretório individualmente. Isto é feito com recurso a um loop
 \bashinline{while read}.
@@ -403,12 +403,12 @@ Os erros na procura dos diretórios não nos são relevantes, por isso o
 \emph{stderr} (\emph{file descriptor} 2) é redirecionado para o
 \Verb|/dev/null|.
 
-O loop em si começa por atribuir a variavél \bashinline{IFS} o valor nulo, isto
+O loop em si começa por atribuir a variável \bashinline{IFS} o valor nulo, isto
 é necessário para garantir que o \bashinline{read} não separa por espaços o
 resultado nem consome espaços no final do resultado, os diretórios podem
-conte-los e nós queremos preservá-los.
+contê-los e nós queremos preservá-los.
 
-O \bashinline|-r| é necessário caso contrário o \bashinline{read} intrepertaria
+O \bashinline|-r| é necessário caso contrário o \bashinline{read} interpretaria
 as barras invertidas como \emph{escape sequences} \cite[3191-3193]{posix}, os
 ficheiros podem conter barras invertidas e nós queremos o seu valor literal logo
 precisamos de desativar este processamento.
@@ -422,8 +422,8 @@ contrário o valor literal de barra invertida seguida de zero seria passado ao
 \bashinline{read}.
 
 De seguida é necessário juntar os comandos para escolher os ficheiros
-(desenvolivdo na secção \ref{sec:implementation_choosing_files}) e calcular
-o tamanho (desenvolivdo na secção \ref{sec:implementation_calculate_size}). O
+(desenvolvido na secção \ref{sec:implementation_choosing_files}) e calcular
+o tamanho (desenvolvido na secção \ref{sec:implementation_calculate_size}). O
 resultado do primeiro pode ser redirecionado diretamente para o segundo visto
 que este já foi adaptado para receber a lista de ficheiros separada por bytes
 nulos.
@@ -458,17 +458,17 @@ devido a falta de permissões) o tamanho é suposto aparecer como \Verb|NA|.
 \end{listing}
 
 No código \ref{code:implementation_dir_size_NA} o código de retorno é
-verificado e se este não for 0 (ocorreu um erro) o tamanho é substituido por
+verificado e se este não for 0 (ocorreu um erro) o tamanho é substituído por
 \Verb|NA|.
 
-Normalmente a variavél \Verb|$?| apenas contêm o código de erro do último
+Normalmente a variável \Verb|$?| apenas contêm o código de erro do último
 comando executado, no entanto nós queremos o código de erro da \emph{pipeline}
 toda, isto poderia ser feito verificando os códigos de erro no array
 \Verb|PIPESTATUS|, no entanto isto requer escrever uma condição para cada
 comando na \emph{pipeline} o que é menos que ideal.
 
 Mas a \emph{Bash} pode ser configurada para devolver o código de erro da
-\emph{pipeline} toda diretamente na variavél \Verb|$?|, isto é feito através da
+\emph{pipeline} toda diretamente na variável \Verb|$?|, isto é feito através da
 opção \Verb|pipefail| \cite{bash_man}, esta pode ser ativada como é apresentado
 no código \ref{code:implementation_pipefail}.
 
@@ -543,7 +543,7 @@ guardado na variável \Verb|NEWFILE| e o do segundo na variável
 
 Os ficheiros vão ter de ser iterados linha a linha para poderem ser extraídos os
 dados necessários para popular os dicionários. Para este fim foi utilizada um
-loop \bashinline{while read} como é apresentad no código
+loop \bashinline{while read} como é apresentado no código
 \ref{code:implementation_file_loop}.
 
 \begin{listing}[H]
@@ -562,9 +562,9 @@ Este loop é estruturado de uma maneira semelhante ao que foi utilizado na secç
 delimitador escolhido é o caráter de linha nova.
 
 É de notar ainda que este loop utiliza \emph{Process Substitution}
-\cite{bash_man}, invês de uma \emph{pipe} como é normal. Isto é necessário pois
+\cite{bash_man}, invés de uma \emph{pipe} como é normal. Isto é necessário pois
 um loop \bashinline{while} precedido por uma \emph{pipe} vai ser executado numa
-\emph{shell} nova e não terá acesso as variavéis enquanto que o redirecionamento
+\emph{shell} nova e não terá acesso as variáveis enquanto que o redirecionamento
 do resultado do \emph{Process Substitution} será executado na mesma
 \emph{shell}.
 
@@ -584,7 +584,7 @@ Dentro de cada um destes loops, cada linha é processada do seguinte modo:
       SPACECHECK_NEW["$name"]="$size"
       DIRECTORIES["$name"]=1
   \end{minted}
-	\cprotect\caption{Processamento de uma linha do resutlado do \Verb|spacecheck.sh|}
+	\cprotect\caption{Processamento de uma linha do resultado do \Verb|spacecheck.sh|}
 \end{listing}
 
 O \bashinline{cut -f1} é utilizado para obter a primeira coluna e o
@@ -624,8 +624,8 @@ dicionário com um ponto de exclamação (\Verb|!|) como é demonstrado no códi
 \end{listing}
 
 De seguida, o tamanho do diretório é consultado nos dicionários que foram criados
-e populados na secção anteior, de modo a simplificar o código estes valores são
-guardados em variavéis.
+e populados na secção anterior, de modo a simplificar o código estes valores são
+guardados em variáveis.
 
 \begin{listing}[H]
 	\centering
@@ -713,9 +713,45 @@ diferença do diretório nos dois ficheiros e resultado é impresso.
 
 \section{Processamento de argumentos}\label{sec:implementation_arg_parsing}
 
-Para o processamento dos argumentos usamos o comando \bashinline{getopts} com o padrão \bashinline{":hran:d:s:l:"}.
+O processamento dos argumentos em ambos os scripts é delegado ao comando
+\bashinline{getopts}, este recebe um padrão, que especifica os argumentos que são
+aceites e se têm valor ou não, e a variável onde o argumento que está a ser
+processado atualmente vai ser guardado.
 
-A opção \Verb|-h| imprime a seguinte mensagem:
+No código \ref{code:implementation_spacecheck_args} é apresentado um excerto de
+como o \bashinline{getopts} é utilizado no \Verb|spacecheck.sh| para processar
+os seus argumentos.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    while getopts ":hran:d:s:l:" o; do
+        case "${o}" in
+        h)
+          help
+          ;;
+        ...
+        : )
+          help "Missing argument for \`-$OPTARG\`"
+          ;;
+        ? )
+          help "Unknown option \`-$OPTARG\`"
+          ;;
+        * )
+          help "Unknown option \`-$o\`"
+          ;;
+        esac
+    done
+  \end{minted}
+	\cprotect\caption{Processamento de argumentos no \Verb|spacecheck.sh|}
+	\label{code:implementation_spacecheck_args}
+\end{listing}
+
+O padrão começa com o símbolo de dois pontos (\Verb|:|), isto indica ao
+\bashinline{getopts} para não emitir mensagens \cite[2837]{posix}, nós fazemos
+isto para ter um controlo maior sobre os erros que são emitidos, os nossos erros
+são acompanhados de um menu de ajuda como é apresentado no código
+\ref{code:implementation_spacecheck_help}.
 
 \begin{listing}[H]
 	\centering
@@ -731,130 +767,193 @@ A opção \Verb|-h| imprime a seguinte mensagem:
       -a:          Order by file name
       -l N:        Only show up to N lines
   \end{minted}
+	\cprotect\caption{Menu de ajuda do \Verb|spacecheck.sh|}
+	\label{code:implementation_spacecheck_help}
 \end{listing}
 
-A opção \Verb|-r| está implementada de uma forma diferente sendo que no processamento dos argumentos apenas faz \bashinline{REVERSE_SORT=true}
+Este menu também pode ser acessado através da opção \Verb|-h|.
 
-A opção \Verb|-a| está implementada da mesma forma que o \Verb|-r| sendo que apenas faz \bashinline{NAME_SORT=true}
+As opções são definidas adicionando o seu caráter a string padrão, se a opção
+precisar de um argumento está tem que ser sufixada com o símbolo de dois pontos
+(\Verb|:|), o argumento depois estará disponível na variável \Verb|OPTARG|
+\cite[2838]{posix}.
 
-Por fim a opção \Verb|-l| adiciona a um array \Verb|HEAD_OPTS| a opção do \Verb|head| com o número de linhas passado pelo utilizador.
+Depois apenas é necessário código no case para lidar com a opção.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
-      linhas="$OPTARG"
-      HEAD_OPTS+=("-n" "$linhas")
+    while getopts ":hran:d:s:l:" o; do
+        case "${o}" in
+        ...
+        l)
+          linhas="$OPTARG"
+          if [ -z "$linhas" ]; then
+            help "Missing argument for \`-$o\`"
+          fi
+          HEAD_OPTS+=("-n" "$linhas")
+          ;;
+        ...
+        esac
+    done
   \end{minted}
+	\caption{Exemplo da implementação de uma opção}
 \end{listing}
 
-\subsection{Ordenar o output}\label{sec:implementation_sort}
+\section{Ordenação do resultado}
 
-Para ordenar o output começamos por criar um array com todas as opções que serão utilizadas para no \Verb|sort|:
+Em ambos os scripts, a maneira como o resultado é ordenado pode ser controlada
+de duas maneira, primeiro o utilizador pode escolher se quer os resultados
+ordenados por tamanho (usado por omissão) ou por nome do diretório. Em segundo
+lugar o utilizador pode escolher ordenar por ordem inversa.
+
+Estas escolhas são guardadas em duas variáveis \Verb|REVERSE_SORT| e
+\Verb|NAME_SORT|, que por defeito são \bashinline{false}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    NAME_SORT=false
+    REVERSE_SORT=false
+  \end{minted}
+	\caption{Variavéis responsáveis pelo ordenamento do resultado}
+\end{listing}
+
+As opções \Verb|-r| e \Verb|-a| a disposição do utilizador mudam o valor de
+\Verb|REVERSE_SORT| e \Verb|NAME_SORT| respetivamente para \bashinline{true}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    ...
+      r)
+        REVERSE_SORT=true
+        ;;
+      a)
+        NAME_SORT=true
+        ;;
+    ...
+  \end{minted}
+	\cprotect\caption{Processamento das opções \Verb|-r| e \Verb|-a|}
+\end{listing}
+
+O código responsável por controlar o ordenamento começa por calcular se é
+necessário inverter a ordem, isto no caso da ordenação por nome do diretório
+corresponde diretamente a presença da opção \Verb|-r|. No entanto, a ordenação
+por tamanho é implementada tal que a ordem decrescente é usada por omissão,
+mas o \bashinline{sort} utiliza a noção contrária (por omissão ordena por ordem
+crescente), logo a ordem inversa se a opção \Verb|-r| \textbf{não} estiver
+presente.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
     NAME_REVERSE_SUFFIX=$([ "$REVERSE_SORT" = false ] && echo "" || echo "r")
     SIZE_REVERSE_SUFFIX=$([ "$REVERSE_SORT" = true ] && echo "" || echo "r")
+  \end{minted}
+	\caption{Processamento da inversão da ordem de ordenamento}
+	\label{code:implementation_reverse_sort}
+\end{listing}
 
+Como pode ser observado no código \ref{code:implementation_reverse_sort}, a
+decisão de inverter ou não a ordem é guardada através da presença do caráter
+\Verb|r| ou não na variável. Isto é justificado se observarmos o código
+\ref{code:implementation_sort_fields} que constrói os argumentos que serão
+passados ao \bashinline{sort}
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
     SORT_BY_NAME=("-k" "2$NAME_REVERSE_SUFFIX")
     SORT_BY_SIZE=("-k" "1,1n$SIZE_REVERSE_SUFFIX")
+  \end{minted}
+	\caption{Construção das opções de ordenamento}
+	\label{code:implementation_sort_fields}
+\end{listing}
 
+A opção \Verb|-k| do comando \bashinline{sort} é usada para escolher as colunas
+onde este vai operar, no caso do ordenamento por tamanho \Verb|1,1| ou seja apenas
+a primeira coluna e \Verb|2| para o nome do diretório que irá ordenar com todas
+as colunas da segunda para a frente (como já foi explicado anteriormente a
+presença de espaços no nome do diretório pode levar a criação de mais
+\enquote{colunas}).
+
+Mas também é aqui definido como devem ser processadas as linhas, além do sufixo
+\Verb|r|, adicionado se a ordem for invertida, o tamanho também têm o prefixo
+\Verb|n| que indica ao \bashinline{sort} que a coluna deve ser interpretada
+tendo em atenção o seu valor numérico \cite[3248]{posix}.
+
+Finalmente o array \Verb|SORT_OPTS| é produzido que vai conter a ordem com que
+estas opções devem ser aplicadas.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
     if [ "$NAME_SORT" = true ] ; then
       SORT_OPTS+=( "${SORT_BY_NAME[@]}" "${SORT_BY_SIZE[@]}" )
     else
       SORT_OPTS+=( "${SORT_BY_SIZE[@]}" "${SORT_BY_NAME[@]}" )
     fi
   \end{minted}
+	\caption{Seleção das opções de ordenamento}
 \end{listing}
 
-O primeiro passo é saber se a ordem tem de ser inversa ou não.
-Para isso criamos duas variáveis \Verb|NAME_REVERSE_SUFFIX| e \Verb|SIZE_REVERSE_SUFFIX| que contêm o sufixo \Verb|r| ou são uma string vazia.
-No caso do \Verb|SIZE_REVERSE_SUFFIX| ele por padrão vai ter o sufixo \Verb|r| visto que é a ordem pretendida quando não se passam argumentos ao script.
+Foi feita a escolha para ordenar com base em ambos os critérios, mudando apenas
+a ordem, pois desta maneira os resultados são mais estáveis de execução para
+execução. Caso contrário seria completamente possível dadas as mesma condições
+obter ordens diferentes quando dois diretórios tivessem o mesmo tamanho.
 
-Após isso criamos dois arrays \Verb|SORT_BY_NAME| e \Verb|SORT_BY_SIZE| que contêm as opções para ordenar por nome e por tamanho respetivamente.
-
-A opção \Verb|-k| do sort serve para especificar as colunas a serem usadas para ordenar.
-No primeiro array a coluna escolhida é a segunda e é concatenada com o sufixo \Verb|NAME_REVERSE_SUFFIX| que é \Verb|r| caso a ordem seja inversa e vazio caso não seja.
-De forma semelhante no segundo array a coluna escolhida é a primeira com a opção \Verb|n| que serve para comparar numericamente e é concatenada com o sufixo \Verb|SIZE_REVERSE_SUFFIX| que é vazio caso a ordem seja inversa e \Verb|'r'| caso não seja.
-
-É importante notar que o -k escolhe em que coluna começar e em qual acabar, sendo o padrão começar na coluna escolhida e acabar na última.
-Por isso aqui no primeiro array apenas é especificada a coluna 2 e no segundo é especificada a coluna de inicio 1 e a de fim também 1.
-
-Após isso é verificado se a ordem é por nome ou por tamanho e adicionado ao array \Verb|SORT_OPTS| as opções respetivas pela ordem correta.
-
-Por fim, para ordenar o output é usado o command \bashinline{sort "${SORT_OPTS[@]}"} no fim do \Verb|while|.
-
-\subsection{Escolher o número de linhas}\label{sec:implementation_head}
-
-O último passo é escolher o número de linhas a serem impressas.
-Como já temos o array \Verb|HEAD_OPTS| basta passar o output ordenado ao seguinte comando:
+Finalmente, o comando \bashinline{sort} é adicionado em série, a seguir a parte
+principal do script, através de uma \emph{pipe} (\Verb_|_).
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
+    find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null | \
+    while IFS= read -r -d $'\0' path; do
+      ...
+    done | \
+    sort "${SORT_OPTS[@]}"
+  \end{minted}
+	\caption{Exemplo da integração do passo de sorteamento nos scripts}
+\end{listing}
+
+\section{Escolher o número de linhas}
+
+O utilizador pode ainda em ambos os scripts controlar o número de linhas que
+devem ser impressas através da opção \Verb|-l|.
+
+Esta adiciona a um array \Verb|HEAD_OPTS| à opção \Verb|-n| com o número de
+linhas que o utilizador especificou, isto indica ao comando \bashinline|head|
+quantas linhas deve imprimir.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    ...
+      l)
+        linhas="$OPTARG"
+        HEAD_OPTS+=("-n" "$linhas")
+    ...
+  \end{minted}
+	\cprotect\caption{Processamento da opção \Verb|-l|}
+\end{listing}
+
+Mais uma vez isto é integrado no programa através do uso de uma \emph{pipe}
+(\Verb_|_), mas desta vez é utilizada uma condicional para decidir se deve ser
+usado o comando \bashinline|cat|, este passa o resultado sem o manipular,
+ou o comando \bashinline|head| com as opções definidas em cima. Deste modo é
+possível aplicar o \bashinline|head| apenas se o resultado tiver de ser limitado.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    find "${DIRS_TO_SEARCH[@]}" -type d -print0 2>/dev/null | \
+    while IFS= read -r -d $'\0' path; do
+      ...
+    done | \
+    sort "${SORT_OPTS[@]}" \
     [ "${#HEAD_OPTS[@]}" -lt 1 ] && cat || head "${HEAD_OPTS[@]}"
   \end{minted}
-\end{listing}
-
-Se o número de opções for menor que 1 então imprime tudo, caso contrário imprime apenas as primeiras linhas.
-
-
-\subsection{Processamento de argumentos}
-
-Para o processamento dos argumentos usamos o comando \bashinline{getopts} com o padrão \bashinline{":hral:"}.
-
-A opção \Verb|-h| imprime a seguinte mensagem:
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{text}
-    Usage: spacerate.sh [options] <new> <old>
-
-    Options:
-      -h:          Shows this message
-      -r:          Print in reverse order
-      -a:          Order by file name
-      -l N:        Only show up to N lines
-  \end{minted}
-\end{listing}
-
-Em relação ao processamento dos argumentos é feito da mesma forma que no \bashinline{spacecheck.sh} mas sem os argumentos que não se aplicam. (\ref{sec:implementation_arg_parsing})
-
-\subsection{Ordenar o output}
-
-Ver \ref{sec:implementation_sort}
-
-\subsection{Escolher o número de linhas}
-
-Ver \ref{sec:implementation_head}
-
-
-\section{Conclusão}
-
-Todos os argumentos e ficheiros são validados e caso não sejam válidos é impressa uma mensagem de erro e o programa termina.
-
-Além disso são verificados casos especiais como diretórios com um \Verb|'-'| no inicio.
-
-\begin{listing}[H]
-	\centering
-	\begin{minted}{bash}
-    for dir in "$@"; do
-      if [ ! -d "$dir" ]; then
-        1>&2 echo "ERROR: \"$dir\" does not exist"
-      fi
-      case "$dir" in
-        -*)
-          if [ ! -d "$dir" ]; then
-            1>&2 echo "+note: did you mean to pass an argument?"
-            1>&2 echo "       all arguments must precede the directory paths"
-          fi
-          # Add `./` to directories beginning with a dash (`-`), so that find, doesn't
-          # mistake them, for functions.
-          DIRS_TO_SEARCH+=("./$dir");;
-        *)
-          DIRS_TO_SEARCH+=("$dir");;
-      esac
-    done
-  \end{minted}
+	\caption{Exemplo da integração do passo de escolhas de linhas nos scripts}
 \end{listing}
