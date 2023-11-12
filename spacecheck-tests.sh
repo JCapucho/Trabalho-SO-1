@@ -58,7 +58,7 @@ regex_filter() {
 date_modification_filter() {
 	SPACECHECK_OPTIONS=("-d" "Sep 10 10:00")
 	create_test_file "all_filtered/file" 4
-	touch -d "Sep 10 09:59" "all_filtered/file"
+	touch -d "Sep 10 10:01" "all_filtered/file"
 
 	create_test_file "mixed_filtered/file1" 4
 	touch -d "Sep 10 10:01" "mixed_filtered/file1"
@@ -113,7 +113,7 @@ combined_filters() {
 	touch -d "Sep 10 10:01" "mixed_filtered/file2"
 
 	create_test_file "mixed_filtered/file3.sh" 26
-	touch -d "Sep 10 10:01" "mixed_filtered/file3"
+	touch -d "Sep 10 09:59" "mixed_filtered/file3.sh"
 
 	create_test_file "mixed_filtered/file4" 4
 	touch -d "Sep 10 09:59" "mixed_filtered/file4"

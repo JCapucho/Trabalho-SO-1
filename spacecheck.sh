@@ -52,7 +52,7 @@ while getopts ":hran:d:s:l:" o; do
 				help "Missing argument for \`-$o\`"
 			fi
 			timestamp="@$(date -d "$data" +%s)"
-			FIND_OPTS+=("-newermt" "$timestamp")
+			FIND_OPTS+=("-not" "-newermt" "$timestamp")
 			;;
 		s)
 			tamanho="$OPTARG"
