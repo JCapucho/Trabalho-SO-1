@@ -51,7 +51,7 @@ while getopts ":hran:d:s:l:" o; do
 			if [ -z "$data" ]; then
 				help "Missing argument for \`-$o\`"
 			fi
-			FIND_OPTS+=("-not" "-newermt" "$data")
+			FIND_OPTS+=('!' "-newermt" "$data")
 			;;
 		s)
 			tamanho="$OPTARG"
