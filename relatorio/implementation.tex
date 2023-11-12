@@ -175,41 +175,148 @@ a implementação final do comando para obter os diretórios e subdiretórios.
 
 \subsection{Escolher os ficheiros}
 
-Após obter os diretórios todos é importante conseguir trabalhar sobre cada um deles, para isso usamos o \bashinline{while read} da seguinte maneira:
+Agora que já temos os diretórios é necessário selecionar todos os ficheiros que
+pertencem a um dado diretório e passam nos filtros definidos pelo utilizador.
+
+Assumindo que o diretório a procurar se encontra na variável \Verb|path|, podemos
+adaptar o comando utilizado na secção anterior para procurar todos os ficheiros
+num dado diretório.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
-    while IFS= read -r -d $'\0' path; do
-      // ...
-    done
+    find "$path" -type f -print0
   \end{minted}
+	\caption{Comando para listar todos os ficheiros num diretório}
 \end{listing}
 
-Aqui colocamos o \bashinline{IFS} nulo para não separar por espaços,
-sendo que diretórios podem conte-los e não queremos cortá-los. O \bashinline|-d $'\0'| tem um
-papel importante, visto que como nós estamos a passar uma string de caminhos
-separados por \Verb|'\0'| é essencial neste passo mudar o delimitador do
-\bashinline{while read} para o \Verb|'\0'|.
+No entanto, isto não é suficiente pois é necessário filtrar os ficheiros de
+acordo com as opções indicadas pelo utilizador. Para tal é introduzido um array
+novo \Verb|FIND_OPTS|, este irá conter opções a passar ao \Verb|find| de acordo
+com as opções especificadas pelo utilizador para o \Verb|spacecheck.sh|.
 
-Com isto podemos começar a procurar os ficheiros a serem usados no cálculo do
-tamanho através de outro \bashinline{find}, contudo desta vez ele terá
-algumas diferenças.
+Logo o comando final para obter apenas os ficheiros que satisfazem os filtros
+será o seguinte.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
-    find "$path" "${FIND_OPTS[@]}" -type f -print0  2>/dev/null
+    find "$path" "${FIND_OPTS[@]}" -type f -print0
   \end{minted}
+	\caption{Comando para filtrar os ficheiros num diretório}
 \end{listing}
 
-O \bashinline{path} vem do loop e o \bashinline|${FIND_OPTS[@]}|
-será falado no processamento de argumentos (\ref{sec:implementation_arg_parsing}), mas contém as opções relevantes
-para a pesquisa de acordo com os argumentos passados pelo utilizador.\label{sec:implementation_find_opts}
+A maneira como são processados os argumentos é detalhada na secção
+\ref{sec:implementation_arg_parsing}. Mas vamos analisar como as opções do
+\Verb|spacecheck.sh| são convertidas nas opções do \Verb|find|.
 
-Além do array de opções a principal diferença deste \bashinline{find}
-para o outro é que este apenas procura por ficheiros (\Verb|type -f|) mas tal como no outro imprime
-os caminhos separados por \Verb|'\0'|.
+O valor passado as opções está na variável \Verb|OPTARG|, mais uma vez isto será
+falado em maior detalhe na secção de processamento de argumentos.
+
+\subsubsection{Filtragem do nome de ficheiro}
+
+Vamos começar por explorar como o programa lida com a filtragem do nome de
+ficheiro utilizando \emph{regex}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    pattern="$OPTARG"
+    FIND_OPTS+=("-regextype" "posix-extended" "-regex" "^.*/$pattern$")
+  \end{minted}
+	\cprotect\caption{Construção do filtro de \emph{regex} sobre o nome do ficheiro}
+\end{listing}
+
+Começamos por escolher o tipo de expressão regular que queremos usar, neste
+caso \Verb|posix-extended|, isto é feito por uma questão de usabilidade pois o
+tipo de \emph{regex} por defeito é o \Verb|findutils-default| que utiliza uma
+sintaxe muito pouco convencional e não têm alguns dos operadores comuns
+\cite{find_man} como a estrela (\Verb|*|) que espera zero ou mais ocurrências
+da expressão.
+
+De seguida é passada a expressão regular, no entanto esta não pode ser passada
+diretamente e precisa de algum código extra a sua volta. Isto é necessário pois
+a opção \Verb|-regex| não aplica o \emph{regex} ao nome do ficheiro mas sim ao
+caminho todo. Como tal começamos por ancorar o \emph{regex} ao ínicio do caminho
+(\Verb|^|) e consumimos todos os caracteres (\Verb|.*|) até a última barra
+\footnote{O \emph{regex} consome até a última barra porque é \emph{greedy}, ou
+	seja este não pára na primeira barra que encontrar mas vai sim tentar consumir
+	o máximo possível desde que respeite o padrão.}
+, a este ponto o \emph{regex} está no início do nome do ficheiro por isso
+aplicamos o \emph{regex} do utilizador, finalmente ancoramos o \emph{regex} ao
+fim (\Verb|$|) isto garante que o nome do ficheiro passa totalmente no
+\emph{regex} do utilizador e não apenas parcialmente (por exemplo, se o
+utilizador passar o \emph{regex} \Verb|abc| nós queremos apenas aceitar
+ficheiros com o nome \Verb|abc|, mas se o regex não tivesse ancorado também
+aceitaríamos \Verb|abcd| entre outros).
+
+\subsubsection{Filtragem por data de modificação}
+
+Outra opção a disposição do utilizador, é a filtragem por data de modificação,
+esta encontra-se implementada da seguinte maneira.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+			data="$OPTARG"
+			FIND_OPTS+=('!' "-newermt" "$data")
+  \end{minted}
+	\caption{Construção do filtro por data de modificação}
+\end{listing}
+
+A opção \Verb|-newermt| faz com que o \Verb|find| apenas procure por ficheiros
+com data de modificação mais recente à data passada, nós queremos o contrário por
+isso utilizamos a opção \Verb|!| que inverte o filtro que aparece a sua direita.
+
+As datas são processadas do mesmo modo que são processadas pelo programa
+\Verb|date| \cite{find_man}, logo não é necessário qualquer passo extra para
+converter da descrição textual passada pelo utilizador para tempo máquina.
+
+\subsubsection{Filtragem por tamanho de ficheiro}
+
+O último filtro implementado permite ao utilizador definir um tamanho mínimo que
+os ficheiros devem ter para serem contabilizados. A nossa implementação permite
+além disto filtrar ficheiros que tenham menos que o tamanho passado e mais (mas
+não exatamente igual) através do uso dos prefixos \Verb|-| e \Verb|+|
+respetivamente.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    tamanho="$OPTARG"
+    if [[ "${tamanho:0-1}" =~ ^[0-9]+$ ]]; then
+      tamanho+="c"
+    fi
+    if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
+      FIND_OPTS+=("(" "-size" "$tamanho" "-o" "-size" "+$tamanho" ")")
+    else
+      FIND_OPTS+=("-size" "$tamanho")
+    fi
+  \end{minted}
+	\caption{Construção do filtro por tamanho do ficheiro}
+\end{listing}
+
+O primeiro \Verb|if| verifica se o último caráter é um número e caso seja
+adiciona um sufixo \Verb|c| ao tamanho, isto serve para o \Verb|find|
+intrepertar o tamanho em bytes em vez de blocos, como é feito por omissão pelo
+\Verb|find|. Este sufixo condicional permite ao utilizador escolher outra
+unidade se desejar, bastando adicionar o sufixo correto.
+
+No segundo \Verb|if| verificamos se o primeiro caráter é um número, se for o
+script vai definir um filtro composto no \Verb|find| este é delineado por
+parênteses, caso contrário o filtro \emph{ou} (\Verb|-o|) não se aplicaria só ao
+segundo filtro mas ao resto dos filtros todos. O primeiro filtro \Verb|-size|
+não tem nenhum prefixo logo o \Verb|find| procura por ficheiros com exatamente o
+tamanho especificado, este é seguido de um \emph{ou} como já foi referido que é
+complementado com outro filtro \Verb|-size| mas este utiliza um tamanho com o
+prefixo \Verb|+| que apenas aceita ficheiros estritamente maiores que o tamanho.
+Esta combinação é necessária para obter todos os ficheiros maiores ou iguais ao
+tamanho mínimo.
+
+Se o primeiro caráter não for um número, o script considera que o tamanho têm um
+prefixo e passa diretamente ao \Verb|find|, podendo assim o utilizador procurar
+por ficheiros maiores e menores (mas não iguais) ao tamanho com o prefixo
+\Verb|+| e \Verb|-| respetivamente.
 
 \subsection{Calcular o tamanho de cada diretório}
 
