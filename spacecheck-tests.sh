@@ -77,7 +77,7 @@ file_size_filter() {
 	SPACECHECK_OPTIONS=("-s" "10")
 	create_test_file "all_filtered/file" 9
 
-	create_test_file "mixed_filtered/file1" 14
+	create_test_file "mixed_filtered/file1" 10
 	create_test_file "mixed_filtered/file2" 4
 	create_test_file "mixed_filtered/file3" 26
 	create_test_file "mixed_filtered/file4" 4

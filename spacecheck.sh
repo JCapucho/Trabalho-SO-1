@@ -62,9 +62,10 @@ while getopts ":hran:d:s:l:" o; do
 				tamanho+="c"
 			fi
 			if [[ "${tamanho:0:1}" =~ ^[0-9]+$ ]]; then
-				tamanho="+$tamanho"
+				FIND_OPTS+=("(" "-size" "$tamanho" "-o" "-size" "+$tamanho" ")")
+			else
+				FIND_OPTS+=("-size" "$tamanho")
 			fi
-			FIND_OPTS+=("-size" "$tamanho")
 			;;
 		r)
 			REVERSE_SORT=true

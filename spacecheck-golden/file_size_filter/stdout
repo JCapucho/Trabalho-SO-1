@@ -1,4 +1,4 @@
 SIZE NAME 20231101 -s 10
-40	file_size_filter
-40	file_size_filter/mixed_filtered
+36	file_size_filter
+36	file_size_filter/mixed_filtered
 0	file_size_filter/all_filtered
