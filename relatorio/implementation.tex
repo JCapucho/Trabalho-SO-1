@@ -4,12 +4,12 @@
 
 Neste trabalho foi nos pedido que críassemos dois scripts \emph{Bash}:
 \Verb|spacecheck.sh| e \Verb|spacerate.sh|, cada um destes desempenharia uma
-função diferente mas complementares.
+função diferente mas que seriam complementares.
 
 O script \Verb|spacecheck.sh| é responsável por produzir um relatório que
-detalha o espaço ocupado por um diretório e como está distribuído pelos seus
-subdiretórios, com opções extra para controlar quais ficheiros contam para esta
-métrica.
+detalha o espaço ocupado por um diretório e como este está distribuído pelos
+seus subdiretórios, com opções extra para controlar quais ficheiros contam para
+esta métrica.
 
 Os resultados da execução poderiam depois ser comparados com recurso ao script
 \Verb|spacerate.sh|, este calcularia a diferença entre os resultados e
@@ -20,10 +20,10 @@ Nesta secção vamos detalhar como implementamos os nossos scripts, incluindo n�
 só como funcionam mas também a lógica por detrás das nossas decisões para os
 construir desta maneira.
 
-Os scripts possuem uma parte semelhante aos dois significativa (por exemplo, o
+Os scripts possuem bastantes partes semelhantes aos dois (por exemplo, o
 processamento de argumentos e o ordenamento de resultados) como tal iremos
 começar por discutir as partes específicas a cada script e de seguida
-abordaremos as partes comuns.
+abordaremos as partes que são comuns a ambos.
 
 \cprotect\section{\Verb|spacecheck.sh|}
 
@@ -35,7 +35,7 @@ Podemos então dividir a implementação em três grandes problemas a resolver:
 
 \begin{enumerate}
 	\item Encontrar os diretórios e subdiretórios
-	\item Escolher os ficheiros que contam
+	\item Escolher os ficheiros que devem ser contabilizados
 	\item Calcular o tamanho do diretório
 \end{enumerate}
 
@@ -43,7 +43,7 @@ Vamos então começar por explorar cada um destes problemas e como foram resolvi
 
 \subsection{Encontrar os diretórios}\label{sec:implementation_find_dirs}
 
-O primeiro passo então é descobrir todos os diretórios e subdiretórios que terão
+O primeiro passo é então descobrir todos os diretórios e subdiretórios que terão
 de ser considerados pelo script.
 
 O comando \Verb|find| é ideal para esta situação, este permite descobrir
@@ -107,14 +107,14 @@ nulos e o \Verb|find| contêm uma opção \Verb|-print0| que invês de separar o
 resultados com uma linha nova, vai separar com o byte nulo \cite{find_man}.
 
 Chegamos assim então a segunda iteração do comando para obter os diretórios e
-subdiretórios apresentado no código \ref{code:implementation_second_subdir_find}.
+subdiretórios apresentada no código \ref{code:implementation_second_subdir_find}.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
     find "$@" -type d -print0
   \end{minted}
-	\caption{Segundo iteração do comando para obter os subdiretórios}
+	\caption{Segunda iteração do comando para obter os subdiretórios}
 	\label{code:implementation_second_subdir_find}
 \end{listing}
 
@@ -122,6 +122,7 @@ No entanto esta versão ainda tem um problema, como já vimos os diretórios pod
 ter nomes pouco convencionais e se o nome começar com um híphen (\Verb|-|),
 estes vão ser interpretados pelo \Verb|find| como opções. Para resolver isto
 vamos ter de escapar manualmente todos os diretórios que começam com um híphen
+adicionando \bashinline|./| antes do nome do diretório
 \footnote{Mais a frente o mesmo problema terá de ser resolvido noutros comandos,
 	estes ou aceitam um argumento especial \Verb|--| que sinaliza o fim das opções,
 	ou têm uma opção \Verb|-files0-from|. O primeiro não existe no \Verb|find|
@@ -305,11 +306,12 @@ unidade se desejar, bastando adicionar o sufixo correto.
 No segundo \Verb|if| verificamos se o primeiro caráter é um número, se for o
 script vai definir um filtro composto no \Verb|find| este é delineado por
 parênteses, caso contrário o filtro \emph{ou} (\Verb|-o|) não se aplicaria só ao
-segundo filtro mas ao resto dos filtros todos. O primeiro filtro \Verb|-size|
+segundo filtro mas ao resto dos argumentos todos. O primeiro filtro \Verb|-size|
 não tem nenhum prefixo logo o \Verb|find| procura por ficheiros com exatamente o
-tamanho especificado, este é seguido de um \emph{ou} como já foi referido que é
-complementado com outro filtro \Verb|-size| mas este utiliza um tamanho com o
-prefixo \Verb|+| que apenas aceita ficheiros estritamente maiores que o tamanho.
+tamanho especificado, este é seguido de um \enquote{\emph{ou}} como já foi
+referido, que por sua vez é complementado com outro filtro \Verb|-size| mas
+este utiliza um tamanho com o prefixo \Verb|+| que apenas aceita ficheiros
+estritamente maiores que o tamanho.
 Esta combinação é necessária para obter todos os ficheiros maiores ou iguais ao
 tamanho mínimo.
 
@@ -509,7 +511,7 @@ O script \Verb|spacerate.sh| após fornecido dois ficheiros com resultados da
 execução do \Verb|spacecheck.sh| calcula a diferença, indicando também se os
 diretórios foram criados ou removidos de uma execução para a outra.
 
-A implementação pode então ser dividida duas partes:
+A implementação pode então ser dividida em duas partes:
 
 \begin{enumerate}
 	\item Extrair os diretórios
@@ -598,13 +600,13 @@ como chave e o tamanho como valor. No loop dedicado ao ficheiro
 \Verb|OLDFILE| o dicionário atualizado é o \Verb|SPACECHECK_OLD|.
 
 Ao mesmo tempo também adicionamos ao dicionário \Verb|DIRECTORIES| o nome do
-ficheiro como chave e o valor 1, que como é um dicionário não repete as chaves,
+ficheiro como chave e o valor 1, este como é um dicionário não repete as chaves,
 logo vamos obter um conjunto com todos os diretórios dos dois ficheiros.
 
 \subsection{Comparar os diretórios}
 
 Agora que já temos os dados guardados em dicionários podemos começar a comparar
-os dois ficheiros. Como tal vamos começar por iterar sobre os diretórios.
+os dois ficheiros. Como tal vamos iterar sobre os diretórios.
 
 Como foi referido na secção anterior, todos os diretórios que foram encontrados
 em ambos os ficheiros foram guardados no dicionário \Verb|DIRECTORIES|, logo
@@ -636,7 +638,7 @@ guardados em variáveis.
 	\caption{Consulta do tamanho do diretório em ambas as versões}
 \end{listing}
 
-Agora é necessário verificar os casos em que o diretório está apenas presente
+Primeiro, é necessário verificar os casos em que o diretório está apenas presente
 num dos ficheiros. Para tal começamos por verificar se o \Verb|old_size| está
 vazio, isto indicará que o diretório não existe no ficheiro antigo mas existe
 no novo, logo a diferença não precisa de ser calculada e o ficheiro é marcado
@@ -654,7 +656,7 @@ como \Verb|NEW| no fim da linha.
 
 Caso o \Verb|new_size| esteja vazio o diretório não existe no ficheiro novo,
 mas existe no antigo, logo não precisamos de calcular a diferença, sendo apenas
-adicionado um \Verb|-| no tamanho para denotar que este foi removido, além disso
+prefixado um \Verb|-| no tamanho para denotar que este foi removido, além disso
 é adicionado ao fim da linha a string \Verb|REMOVED|.
 
 \begin{listing}[H]
@@ -697,7 +699,7 @@ casos a diferença não é calculada e o \Verb|NA| é propagado.
 \end{listing}
 
 Por fim, se os dois tamanhos existirem e não forem \Verb|NA| então calculamos a
-diferença do diretório nos dois ficheiros e resultado é impresso.
+diferença do diretório nos dois ficheiros e o resultado é impresso.
 
 \begin{listing}[H]
 	\centering
@@ -706,7 +708,6 @@ diferença do diretório nos dois ficheiros e resultado é impresso.
       diff=$((new_size - old_size))
       echo -e "$diff\t$key"
     fi
-    ...
   \end{minted}
 	\caption{Cálculo da diferença entre os dois ficheiros}
 \end{listing}
@@ -715,7 +716,7 @@ diferença do diretório nos dois ficheiros e resultado é impresso.
 
 O processamento dos argumentos em ambos os scripts é delegado ao comando
 \bashinline{getopts}, este recebe um padrão, que especifica os argumentos que são
-aceites e se têm valor ou não, e a variável onde o argumento que está a ser
+aceites, se estes têm valor ou não, e a variável onde o argumento que está a ser
 processado atualmente vai ser guardado.
 
 No código \ref{code:implementation_spacecheck_args} é apresentado um excerto de
@@ -748,15 +749,15 @@ os seus argumentos.
 \end{listing}
 
 O padrão começa com o símbolo de dois pontos (\Verb|:|), isto indica ao
-\bashinline{getopts} para não emitir mensagens \cite[2837]{posix}, nós fazemos
-isto para ter um controlo maior sobre os erros que são emitidos, os nossos erros
-são acompanhados de um menu de ajuda como é apresentado no código
+\bashinline{getopts} para não emitir mensagens de erro \cite[2837]{posix}, nós
+fazemos isto para ter um controlo maior sobre os erros que são emitidos, os
+nossos erros são acompanhados de um menu de ajuda como é apresentado no código
 \ref{code:implementation_spacecheck_help}.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{text}
-    Usage: ./spacecheck.sh [options] [dir...]
+    Usage: spacecheck.sh [options] [dir...]
 
     Options:
       -h:          Shows this message
@@ -778,7 +779,7 @@ precisar de um argumento está tem que ser sufixada com o símbolo de dois ponto
 (\Verb|:|), o argumento depois estará disponível na variável \Verb|OPTARG|
 \cite[2838]{posix}.
 
-Depois apenas é necessário código no case para lidar com a opção.
+Depois apenas é necessário código no \bashinline{case} para lidar com a opção.
 
 \begin{listing}[H]
 	\centering
@@ -842,8 +843,8 @@ necessário inverter a ordem, isto no caso da ordenação por nome do diretório
 corresponde diretamente a presença da opção \Verb|-r|. No entanto, a ordenação
 por tamanho é implementada tal que a ordem decrescente é usada por omissão,
 mas o \bashinline{sort} utiliza a noção contrária (por omissão ordena por ordem
-crescente), logo a ordem inversa se a opção \Verb|-r| \textbf{não} estiver
-presente.
+crescente), logo a ordem inversa é usada se a opção \Verb|-r| \textbf{não}
+estiver presente.
 
 \begin{listing}[H]
 	\centering
@@ -872,14 +873,14 @@ passados ao \bashinline{sort}
 \end{listing}
 
 A opção \Verb|-k| do comando \bashinline{sort} é usada para escolher as colunas
-onde este vai operar, no caso do ordenamento por tamanho \Verb|1,1| ou seja apenas
+onde este vai operar, \Verb|1,1| no caso do ordenamento por tamanho ou seja apenas
 a primeira coluna e \Verb|2| para o nome do diretório que irá ordenar com todas
 as colunas da segunda para a frente (como já foi explicado anteriormente a
 presença de espaços no nome do diretório pode levar a criação de mais
 \enquote{colunas}).
 
-Mas também é aqui definido como devem ser processadas as linhas, além do sufixo
-\Verb|r|, adicionado se a ordem for invertida, o tamanho também têm o prefixo
+Mas também é aqui definido como devem ser processadas as colunas, além do sufixo
+\Verb|r| adicionado se a ordem for invertida, o tamanho também têm o prefixo
 \Verb|n| que indica ao \bashinline{sort} que a coluna deve ser interpretada
 tendo em atenção o seu valor numérico \cite[3248]{posix}.
 
