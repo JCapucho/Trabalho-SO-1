@@ -94,10 +94,10 @@ configurar o teste (ou \Verb|:| que em \emph{Bash} é a função vazia).
 Após o mapa de testes, é necessário definir duas funções extra \Verb|test_start|
 e \Verb|test_end|, estas funções serão usadas pelo arnês de testes e vão correr
 antes e depois de cada teste respetivamente. No \Verb|test_start| é suposto
-definir código comum a todos os testes, como por exemplo, apagar ficheiros antigos
-e criar o diretório do teste. O \Verb|test_end|, além de código definido pelo
-desenvolvedor, têm de executar o programa sobre teste e fazer o \emph{diff} com
-os ficheiros de referência.
+definir código comum a todos os testes, como por exemplo, apagar ficheiros
+antigos e criar o diretório do teste. O \Verb|test_end|, além de código definido
+pelo desenvolvedor, têm de executar o programa sobre teste e fazer o \emph{diff}
+com os ficheiros de referência.
 
 Finalmente o script de testagem carregá o ficheiro \Verb|test_harness.sh|. Este
 ficheiro é o arnês de testagem, ou seja inclui rotinas de como fazer o
@@ -168,19 +168,20 @@ dado caminho (e os diretórios onde ele reside) com um tamanho definido, a funç
 	\label{code:create_test_file}
 \end{listing}
 
-A função faz uso do comando \Verb|dirname| para obter o caminho sem o nome do
-ficheiro, ou seja, apenas com os diretórios, de seguida passa este valor ao
-\Verb|mkdir| que os vai criar, aqui é utilizada a opção \Verb|-p| para criar os
-diretórios recursivamente e para o \Verb|mkdir| não falhar se estas já existirem.
+A função faz uso do comando \bashinline|dirname| para obter o caminho sem o nome
+do ficheiro, ou seja, apenas com os diretórios, de seguida passa este valor ao
+\bashinline|mkdir| que os vai criar, aqui é utilizada a opção \Verb|-p| para
+criar os diretórios recursivamente e para o \bashinline|mkdir| não falhar se
+estas já existirem.
 
 Em ambos estes comandos foi necessário utilizar \Verb|--| antes do caminho, isto
 acontece porque é perfeitamente válido o caminho começar por um traço
 (\Verb|-|), que normalmente denota opções, isto foi explicado em maior detalhe
 na secção \ref{sec:implementation_find_dirs}.
 
-O ficheiro em si é criado através do programa \Verb|dd|, este é utilizado porque
-permite o controlo preciso do tamanho do ficheiro, para isto é utilizado o
-ficheiro especial \Verb|/dev/zero| (um ficheiro sem fim que retorna sempre 0),
+O ficheiro em si é criado através do programa \bashinline|dd|, este é utilizado
+porque permite o controlo preciso do tamanho do ficheiro, para isto é utilizado
+o ficheiro especial \Verb|/dev/zero| (um ficheiro sem fim que retorna sempre 0),
 de onde vai ser lido um bloco (\Verb|count=1|) de \Verb|$size| bytes
 (\Verb|bs=$size|) que será copiado para o novo ficheiro.
 
@@ -232,8 +233,8 @@ verificar essa propriedade no programa.
 
 A implementação de um processo de testagem automática descrito na secção
 anterior, permitiu-nos satisfazer os objetivos que delineamos na secção
-\ref{sec:testing_metodology}, os testes são todos executados automaticamente (com a
-opção de opcionalmente restringir os testes a executar), eles correm em
+\ref{sec:testing_metodology}, os testes são todos executados automaticamente
+(com a opção de opcionalmente restringir os testes a executar), eles correm em
 ambientes que são criados de raiz em cada execução e são declarados num ficheiro
 \emph{Bash}.
 
@@ -249,10 +250,10 @@ Isto traduz-se numa redução do tempo de testagem para \textbf{um teste} de
 Além da redução do tempo necessário para a testagem, o novo processo foi logo
 após a sua implementação capaz de capturar um erro que tinha sido introduzido
 anteriormente aquando de mudanças de como os ficheiros eram filtrados no
-\Verb|spacecheck.sh|. O erro
-causava com que o filtro de data de modificação não tivesse qualquer efeito,
-este em particular é um dos casos mais difíceis de testar devido ao números de
-passos necessários para configurar um diretório com datas especificas manualmente.
+\Verb|spacecheck.sh|. O erro causava com que o filtro de data de modificação não
+tivesse qualquer efeito, este em particular é um dos casos mais difíceis de
+testar devido ao números de passos necessários para configurar um diretório com
+datas especificas manualmente.
 
 Concluindo, o novo processo de testagem é mais eficiente e eficaz em garantir
 a qualidade do trabalho criado, consideramos assim que o tempo gasto na sua
