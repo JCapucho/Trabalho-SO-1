@@ -320,23 +320,61 @@ por ficheiros maiores e menores (mas não iguais) ao tamanho com o prefixo
 
 \subsection{Calcular o tamanho de cada diretório}
 
-Uma vez que já temos uma lista com todos os ficheiros referentes a um
-diretório, o último passo que falta é calcular o tamanho de todos ficheiros.
-Felizmente para nós o comando \bashinline{du} consegue facilmente fazer
-isso utilizando o seguinte comando.
+Agora que já temos uma lista de todos os ficheiros pertencentes a um
+diretório, falta-nos apenas calcular o tamanho de todos ficheiros.
+Para este fim vamos utilizar o comando \bashinline{du} que permite calcular o
+espaço ocupado de uma lista de ficheiros.
+
+A nossa lista de ficheiros vêm separada por bytes nulos, logo invês de passar os
+ficheiros diretamente, vamos ter de utilzar a opção \Verb|--files0-from|, esta
+causa com que o \bashinline{du}, invês de ler a lista de ficheiros do
+\emph{stdin} separada por linhas novas, vá ler a lista de ficheiros separada por
+bytes nulos do ficheiro passado como valor da opção \cite{du_man}, nós utilizamos
+o valor especial \Verb|-| que sinaliza que o ficheiro p \emph{stdin}, desta
+maneira conseguimos ler do \emph{stdin} separado por bytes nulos.
+
+O comando \bashinline{du} por defeito mostra o espaço ocupado por cada ficheiro
+mas não um total, no entanto, se passarmos a opção \Verb|-c| este irá imprimir
+na última linha um total correspodente a soma do tamanho de todos os ficheiros
+\cite{du_man}.
+
+A primeira versão do comando que foi utilizado é apresentada no código
+\ref{code:implementation_first_size_calcultate}.
 
 \begin{listing}[H]
 	\centering
 	\begin{minted}{bash}
-    du -b --files0-from=- -cs 2>/dev/null | cut -f1 | tail -n1
+    du -c --files0-from=- | tail -n1 | cut -f1
   \end{minted}
+	\caption{Primeira iteração do comando para calcular o tamanho dos ficheiros}
+	\label{code:implementation_first_size_calcultate}
 \end{listing}
 
-O commando \bashinline{du -b} serve para obter o espaço utilizado pelos
-ficheiros em bytes. O argumento \bashinline{--files0-from=-} é necessário aqui visto que serve para ler caminhos do \Verb|stdin| separados por \Verb|'\0'|, que é como nós formatámos os dados no passo anterior com o
-\bashinline{-print0} no \bashinline{find}. Por fim, usamos a opção
-\bashinline{-cs} na qual o \Verb|c| mostra a soma dos tamanhos de todos os ficheiros e o \Verb|s| serve para evitar repetições
-(o seu único propósito é eficiência).
+O comando baseia-se no \bashinline{du} com as opções discutidas em cima, o
+resultado da sua execução é depois redirecionado para o \bashinline{tail} que
+irá filtrar tudo com a exceção da última linha (\Verb|-n1|), que será mais uma
+vez redirecionada desta vez para o \bashinline{cut} que irá retirar a primeira
+coluna (\Verb|-f1|), esta corresponde ao valor do tamanho total.
+
+Esta versão tinha apenas o problema que o \bashinline{du} por omissão conta o
+número de blocos ocupados no disco pelo ficheiro, no entanto nós queremos o
+número de bytes ocupados pelo conteúdo do ficheiro (e não o numero de bytes do
+bloco no disco onde reside o ficheiro). Isto pode ser resolvido com a opção
+\Verb|-b| que não só retorna o resultado em bytes mas também conta o tamanho do
+conteúdo invés dos blocos ocupados pelo ficheiro \cite{du_man}.
+
+\begin{listing}[H]
+	\centering
+	\begin{minted}{bash}
+    du -cb --files0-from=- | tail -n1 | cut -f1
+  \end{minted}
+	\caption{Iteração final do comando para calcular o tamanho dos ficheiros}
+	\label{code:implementation_final_size_calcultate}
+\end{listing}
+
+A versão do código \ref{code:implementation_final_size_calcultate} é a que foi
+implementada no programa final, esta produz o total do conteúdo dos ficheiros em
+bytes.
 
 De seguida usamos o comando \bashinline{cut -f1} para obter tudo até o
 primeiro \Verb|'\t'| e, por fim, damos \bashinline{tail -n1} para extrair
