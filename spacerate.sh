@@ -81,33 +81,33 @@ else
 	SORT_OPTS+=( "${SORT_BY_SIZE[@]}" "${SORT_BY_NAME[@]}" )
 fi
 
-declare -A SPACECHECK_NEWEST
-declare -A SPACECHECK_OLDEST
+declare -A SPACECHECK_NEW
+declare -A SPACECHECK_OLD
 
-NEWESTFILE="$1"
-OLDESTFILE="$2"
+NEWFILE="$1"
+OLDFILE="$2"
 
 declare -A DIRECTORIES
 
-while IFS=$'\n' read -r line; do
+while IFS= read -r -d $'\n' line; do
 	size=$(echo "$line" | cut -f1)
 	name=$(echo "$line" | cut -f2-)
-	SPACECHECK_NEWEST["$name"]="$size"
+	SPACECHECK_NEW["$name"]="$size"
 	DIRECTORIES["$name"]=1
-done < <(tail -n +2 -- "$NEWESTFILE")
+done < <(tail -n +2 -- "$NEWFILE")
 
-while IFS=$'\n' read -r line; do
+while IFS= read -r -d $'\n' line; do
 	size=$(echo "$line" | cut -f1)
 	name=$(echo "$line" | cut -f2-)
-	SPACECHECK_OLDEST["$name"]="$size"
+	SPACECHECK_OLD["$name"]="$size"
 	DIRECTORIES["$name"]=1
-done < <(tail -n +2 -- "$OLDESTFILE")
+done < <(tail -n +2 -- "$OLDFILE")
 
 echo SIZE NAME
 
 for key in "${!DIRECTORIES[@]}"; do
-	old_size="${SPACECHECK_OLDEST[$key]}"
-	new_size="${SPACECHECK_NEWEST[$key]}"
+	old_size="${SPACECHECK_OLD[$key]}"
+	new_size="${SPACECHECK_NEW[$key]}"
 	if [ -z "$old_size" ]; then
 		echo -e "$new_size\t$key\tNEW"
 	elif [ -z "$new_size" ]; then
