@@ -47,10 +47,10 @@ while getopts ":hral:" o; do
 			HEAD_OPTS+=("-n" "$linhas")
 			;;
 		: )
-			help "Missing argument"
+			help "Missing argument for \`-$OPTARG\`"
 			;;
 		? )
-			help "Unknown option"
+			help "Unknown option \`-$OPTARG\`"
 			;;
 		* )
 			help "Unknown option \`-$o\`"

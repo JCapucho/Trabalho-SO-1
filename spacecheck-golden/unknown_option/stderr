@@ -1,4 +1,4 @@
-Error: Unknown option
+Error: Unknown option `-m`
 Usage: spacecheck.sh [options] [dir...]
 
 Options:
